@@ -1,0 +1,47 @@
+{
+  "coordinate_notice": "Demonstration coordinates only. These points are inside Kathmandu Valley for the prototype and are not verified deployment sites or claims of installed equipment.",
+  "nodes": [
+    {
+      "node_id": "FSN-01",
+      "water_point": "Reservoir Outlet",
+      "latitude": 27.745,
+      "longitude": 85.4167
+    },
+    {
+      "node_id": "FSN-02",
+      "water_point": "Community Tap",
+      "latitude": 27.712,
+      "longitude": 85.322
+    },
+    {
+      "node_id": "FSN-03",
+      "water_point": "Tanker Fill Point",
+      "latitude": 27.671,
+      "longitude": 85.318
+    }
+  ],
+  "simulation": {
+    "sample_interval_ms": 1000,
+    "baseline": {
+      "ph": [6.8, 7.6],
+      "turbidity_ntu": [2.0, 8.0],
+      "tds_ppm": [120, 250],
+      "water_temp_c": [16.0, 24.0],
+      "flow_lpm": [8.0, 18.0]
+    },
+    "flood": {
+      "turbidity_ntu": [100, 800],
+      "ph_drop_per_severity": 0.7,
+      "ph_floor": 5.8,
+      "tds_rise_ppm_per_severity": 260,
+      "flow_reduction_per_severity": 0.6,
+      "flow_interruption_probability": 0.25
+    },
+    "flood_event": {
+      "minimum_severity": 0.15,
+      "rise_fraction": 0.25,
+      "peak_fraction": 0.2,
+      "washout_rate": 3.0
+    }
+  }
+}
