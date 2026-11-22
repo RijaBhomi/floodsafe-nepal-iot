@@ -2,23 +2,32 @@
 
 Example:
     python -m src.main --scenario flood --count 12 --output output/flood.jsonl
+    python -m src.main --scenario normal --count 30 --save-db
 
 Each reading is printed as one JSON object on its own line. The optional
-"--output" file receives the same lines (JSON Lines format).
+"--output" file receives the same lines (JSON Lines format). The optional
+"--save-db" flag also stores the readings in the local SQLite buffer.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import sqlite3
 import sys
 from pathlib import Path
 
 # Support both "python -m src.main" (relative import) and
 # "python src/main.py" (plain import) without extra setup.
 try:
+    from .database import (
+        count_pending_readings,
+        initialize_database,
+        insert_readings,
+    )
     from .simulator import SCENARIOS, SimulationError, generate_readings, load_config
 except ImportError:  # pragma: no cover - only used when run as a plain script
+    from database import count_pending_readings, initialize_database, insert_readings
     from simulator import SCENARIOS, SimulationError, generate_readings, load_config
 
 # Resolve paths from the project root so the commands work from any folder.
@@ -61,12 +70,18 @@ def build_parser() -> argparse.ArgumentParser:
             "(e.g. output/flood.jsonl)"
         ),
     )
+    parser.add_argument(
+        "--save-db",
+        action="store_true",
+        help="also save the readings to the local SQLite buffer (data/floodsafe.db)",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
 
+    db_connection: sqlite3.Connection | None = None
     try:
         config = load_config(DEFAULT_CONFIG)
         readings = generate_readings(config, args.scenario, args.count)
@@ -77,21 +92,33 @@ def main(argv: list[str] | None = None) -> int:
             if not output_path.is_absolute():
                 output_path = PROJECT_ROOT / output_path
             output_path.parent.mkdir(parents=True, exist_ok=True)
-    except SimulationError as exc:
+
+        if args.save_db:
+            db_connection = initialize_database()
+    except (SimulationError, OSError, sqlite3.Error) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
 
-    # Serialize once so stdout and the optional file are identical.
-    lines = [json.dumps(reading) for reading in readings]
+    inserted = 0
+    pending = 0
+    try:
+        # Serialize once so stdout and the optional file are identical.
+        lines = [json.dumps(reading) for reading in readings]
 
-    if output_path is not None:
-        try:
+        if output_path is not None:
             with output_path.open("w", encoding="utf-8") as handle:
                 for line in lines:
                     handle.write(line + "\n")
-        except OSError as exc:
-            print(f"Error: could not write {output_path}: {exc}", file=sys.stderr)
-            return 1
+
+        if db_connection is not None:
+            inserted = insert_readings(db_connection, readings)
+            pending = count_pending_readings(db_connection)
+    except (OSError, sqlite3.Error, ValueError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+    finally:
+        if db_connection is not None:
+            db_connection.close()
 
     # Only JSON goes to stdout, so piping remains valid JSON Lines.
     for line in lines:
@@ -99,6 +126,13 @@ def main(argv: list[str] | None = None) -> int:
 
     if output_path is not None:
         print(f"Saved {len(lines)} readings to {output_path}", file=sys.stderr)
+    if db_connection is not None:
+        print(
+            f"Saved {inserted} readings to database; "
+            f"skipped {len(readings) - inserted} duplicates; "
+            f"pending (unsent): {pending}",
+            file=sys.stderr,
+        )
     return 0
 
 

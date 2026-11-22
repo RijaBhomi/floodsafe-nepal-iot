@@ -1,6 +1,6 @@
 # FloodSafe Nepal — IoT Assignment 3
 
-**Current stage: project skeleton + Python virtual sensor simulator.**
+**Current stage: project skeleton, Python virtual sensor simulator, and SQLite local buffer.**
 
 FloodSafe Nepal is a post-flood water-quality monitoring and decision-support
 prototype for the Internet of Things (ITS67404) Assignment 3. Python simulates
@@ -20,11 +20,16 @@ points in Kathmandu Valley.
 - A standard-library-only Python simulator with two scenarios: `normal` and
   `flood`.
 - JSON Lines output on screen and, optionally, to a file in `output/`.
+- A SQLite local buffer (`src/database.py`) that stores readings with
+  `sent = 0` until a later stage transmits them.
+- Basic automated tests for the database in `tests/`.
 
 ## What is NOT included yet
 
-SQLite buffering, MQTT/TLS, ThingsBoard, dashboards, alarms, cloud integration,
-and performance measurement. Those belong to later stages of the assignment.
+MQTT/TLS, ThingsBoard, dashboards, alarms, cloud integration, and performance
+measurement. Those belong to later stages of the assignment. The database does
+not send anything yet — it only stores readings and tracks which ones are
+pending.
 
 ## Project structure
 
@@ -37,8 +42,12 @@ and performance measurement. Those belong to later stages of the assignment.
 | `docs/telemetry_spec.md` | The shared telemetry contract: exact field names, types, units and example reading. |
 | `src/__init__.py` | Marks `src` as a Python package so `python -m src.main` works. |
 | `src/simulator.py` | The sensor models, flood event curve and reading generation logic. No I/O beyond reading the config. |
-| `src/main.py` | Command-line entry point: parses arguments, prints JSON lines and optionally writes a `.jsonl` file. |
+| `src/database.py` | SQLite local buffer: creates the table, inserts readings, returns pending rows and marks them sent. |
+| `src/main.py` | Command-line entry point: parses arguments, prints JSON lines, optionally writes a `.jsonl` file and/or saves to SQLite. |
+| `data/.gitkeep` | Placeholder so the `data/` directory is tracked by Git. |
+| `data/floodsafe.db` | Generated SQLite database (ignored by Git; created on first `--save-db` run). |
 | `output/.gitkeep` | Placeholder so the empty `output/` directory is tracked by Git. |
+| `tests/test_database.py` | Standard-library `unittest` tests using a temporary database. |
 
 ## Telemetry schema (summary)
 
@@ -136,6 +145,125 @@ python3 -m src.main --scenario normal --count 30 --output output/normal.jsonl
 python3 -m src.main --scenario flood --count 30 --output output/flood.jsonl
 ```
 
+## SQLite local buffer
+
+### What SQLite is doing in our project
+
+SQLite is a small database built into Python (`sqlite3`), so no installation or
+server is needed. It acts as the **local storage** for our virtual node. Every
+reading generated with `--save-db` is written to `data/floodsafe.db` before any
+future transmission attempt. This is the first half of *store-and-forward*:
+**store now, forward later**.
+
+The table is named `sensor_readings`. It stores the same 11 telemetry fields
+as the JSON output, plus three database-only columns:
+
+| Column | Meaning |
+| --- | --- |
+| `id` | `INTEGER PRIMARY KEY AUTOINCREMENT` — a unique row number for this database. |
+| `sent` | `0` = waiting to be transmitted, `1` = successfully transmitted. New rows start at `0`. |
+| `sent_at` | Unix time in milliseconds when the row was marked sent; `NULL` until then. |
+
+`sent`, `sent_at` and `id` are **never** added to the simulator's JSON output.
+They exist only inside the database.
+
+Two safeguards are built in:
+
+- `UNIQUE (ts, node_id)` stops the same reading being stored twice. If a
+  duplicate arrives, it is skipped instead of causing an error.
+- An index on `(sent, ts)` makes finding unsent rows fast and returns them in
+  timestamp order.
+
+### Initialize the database manually
+
+The database and table are created automatically, but you can do it explicitly:
+
+Windows (PowerShell):
+
+```powershell
+python -c "from src.database import initialize_database; c=initialize_database(); c.close(); print('database ready')"
+```
+
+macOS / Linux:
+
+```bash
+python3 -c "from src.database import initialize_database; c=initialize_database(); c.close(); print('database ready')"
+```
+
+### Generate readings and save them locally
+
+Add `--save-db`. It can be used on its own or together with `--output`.
+
+Windows (PowerShell):
+
+```powershell
+python -m src.main --scenario normal --count 30 --save-db
+python -m src.main --scenario flood --count 30 --save-db
+python -m src.main --scenario flood --count 30 --output output/flood.jsonl --save-db
+```
+
+macOS / Linux:
+
+```bash
+python3 -m src.main --scenario normal --count 30 --save-db
+python3 -m src.main --scenario flood --count 30 --save-db
+python3 -m src.main --scenario flood --count 30 --output output/flood.jsonl --save-db
+```
+
+The readings are still printed as JSON lines. A short summary is written to
+stderr, for example:
+
+```
+Saved 30 readings to database; skipped 0 duplicates; pending (unsent): 30
+```
+
+Check the stored counts at any time:
+
+Windows (PowerShell):
+
+```powershell
+python -c "from src.database import initialize_database, count_readings, count_pending_readings; c=initialize_database(); print('stored:', count_readings(c), 'pending:', count_pending_readings(c)); c.close()"
+```
+
+macOS / Linux:
+
+```bash
+python3 -c "from src.database import initialize_database, count_readings, count_pending_readings; c=initialize_database(); print('stored:', count_readings(c), 'pending:', count_pending_readings(c)); c.close()"
+```
+
+### How pending readings will support network outages
+
+A later stage will add MQTT/TLS. When that stage arrives, the plan is:
+
+1. Generate a reading and store it locally with `sent = 0` (already working).
+2. Try to publish it. If publishing fails, do nothing — the row stays pending.
+3. Only after a confirmed successful publish, call `mark_as_sent(connection, id)`.
+   That sets `sent = 1` and fills in `sent_at`.
+4. During an outage, readings keep accumulating with `sent = 0`.
+5. After the network returns, read the pending queue in timestamp order and
+   replay it, marking each row sent only when the server confirms it.
+
+Today, steps 2–5 are **not implemented**. The module already provides
+`get_pending_readings()` and `mark_as_sent()` so the future network stage can
+use them without changing the table.
+
+### Run the database tests
+
+The tests use a temporary SQLite file, so `data/floodsafe.db` is never changed.
+Run them from the project root:
+
+Windows (PowerShell):
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+macOS / Linux:
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
 ### Command-line options
 
 | Option | Required | Meaning |
@@ -143,6 +271,7 @@ python3 -m src.main --scenario flood --count 30 --output output/flood.jsonl
 | `--scenario {normal,flood}` | yes | Which sensor model to run. Invalid names are rejected with a clear error. |
 | `--count N` | yes | Total number of readings; must be a whole number of at least 1. |
 | `--output PATH` | no | Write the same JSON lines to a file (for example `output/flood.jsonl`). |
+| `--save-db` | no | Also store the readings in `data/floodsafe.db` with `sent = 0`. |
 
 ### Quick validity check (standard library only)
 
