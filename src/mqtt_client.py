@@ -28,11 +28,20 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 ENV_FILE = PROJECT_ROOT / ".env"
 
 TELEMETRY_TOPIC = "v1/devices/me/telemetry"
+PLACEHOLDER_PREFIX = "replace-with-"  # .env.example values are not real tokens
 DEFAULT_PORT = 8883
 KEEPALIVE_SECONDS = 60
 CONNECT_TIMEOUT_NOTE = "check THINGSBOARD_HOST and network access"
 PUBLISH_TIMEOUT_SECONDS = 10
 CLIENT_ID = "floodsafe-nepal-python"
+
+# Each virtual node maps to one ThingsBoard device token. Keeping the mapping
+# here means the CLI and sync manager never have to guess environment names.
+NODE_TOKEN_VARS = {
+    "FSN-01": "FSN_01_TOKEN",
+    "FSN-02": "FSN_02_TOKEN",
+    "FSN-03": "FSN_03_TOKEN",
+}
 
 # Group the exceptions so every network call handles the same set. Note:
 # Paho 2.x puts MQTTException in paho.mqtt, NOT in paho.mqtt.client.
@@ -88,17 +97,62 @@ def read_settings() -> tuple[str, str]:
     return host, token
 
 
-def build_client(token: str) -> mqtt.Client:
-    """Create a TLS-enabled Paho client with the device token as username."""
+def _is_usable_token(value: str) -> bool:
+    """Treat empty values and .env.example placeholders as 'not set'."""
+    value = value.strip()
+    return bool(value) and not value.startswith(PLACEHOLDER_PREFIX)
+
+
+def has_node_tokens() -> bool:
+    """Return True when at least one per-node device token is configured."""
+    load_local_env()
+    return any(
+        _is_usable_token(os.environ.get(env_name, ""))
+        for env_name in NODE_TOKEN_VARS.values()
+    )
+
+
+def read_node_settings() -> tuple[str, dict[str, str]]:
+    """Return (host, {node_id: token}) for the configured node devices.
+
+    A missing token is not an error here: that node's rows simply stay pending.
+    If no node token is set at all, raise a clear configuration error.
+    """
+    load_local_env()
+    host = os.environ.get("THINGSBOARD_HOST", "").strip()
+    if not host:
+        raise MQTTConfigError("THINGSBOARD_HOST is not set. " + CONNECT_TIMEOUT_NOTE)
+
+    tokens: dict[str, str] = {}
+    for node_id, env_name in NODE_TOKEN_VARS.items():
+        token = os.environ.get(env_name, "").strip()
+        if _is_usable_token(token):
+            tokens[node_id] = token
+
+    if not tokens:
+        names = ", ".join(NODE_TOKEN_VARS.values())
+        raise MQTTConfigError(
+            f"No per-node tokens are set. Set at least one of: {names}. "
+            "Never put real tokens in source code."
+        )
+    return host, tokens
+
+
+def build_client(token: str, client_id: str = CLIENT_ID) -> mqtt.Client:
+    """Create a TLS-enabled Paho client with the device token as username.
+
+    MQTT client IDs must be unique per connection. The per-node sync passes a
+    different ID for each device; the default keeps the Stage 3 path unchanged.
+    """
     # Paho 2.x wants a callback API version; Paho 1.x does not have it.
     if hasattr(mqtt, "CallbackAPIVersion"):
         client = mqtt.Client(
             mqtt.CallbackAPIVersion.VERSION2,
-            client_id=CLIENT_ID,
+            client_id=client_id,
             protocol=mqtt.MQTTv311,
         )
     else:  # pragma: no cover - only for older Paho installations
-        client = mqtt.Client(client_id=CLIENT_ID, protocol=mqtt.MQTTv311)
+        client = mqtt.Client(client_id=client_id, protocol=mqtt.MQTTv311)
 
     # ThingsBoard uses the device access token as the MQTT username and an
     # empty password. Nothing is stored in source code.

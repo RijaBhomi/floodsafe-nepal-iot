@@ -8,7 +8,10 @@ Example:
 Each reading is printed as one JSON object on its own line. The optional
 "--output" file receives the same lines (JSON Lines format). The optional
 "--save-db" flag also stores the readings in the local SQLite buffer. The
-optional "--sync" flag publishes pending rows to ThingsBoard once.
+optional "--sync" flag publishes pending rows to ThingsBoard once. When
+per-node tokens (FSN_01_TOKEN, FSN_02_TOKEN, FSN_03_TOKEN) are set, each node
+is routed to its own ThingsBoard device; otherwise the Stage 3 single
+THINGSBOARD_TOKEN is used.
 """
 
 from __future__ import annotations
@@ -27,14 +30,14 @@ try:
         initialize_database,
         insert_readings,
     )
-    from .mqtt_client import MQTTConfigError, MQTTError
+    from .mqtt_client import MQTTConfigError, MQTTError, has_node_tokens
     from .simulator import SCENARIOS, SimulationError, generate_readings, load_config
-    from .sync_manager import sync_from_environment
+    from .sync_manager import sync_from_environment, sync_from_environment_by_node
 except ImportError:  # pragma: no cover - only used when run as a plain script
     from database import count_pending_readings, initialize_database, insert_readings
-    from mqtt_client import MQTTConfigError, MQTTError
+    from mqtt_client import MQTTConfigError, MQTTError, has_node_tokens
     from simulator import SCENARIOS, SimulationError, generate_readings, load_config
-    from sync_manager import sync_from_environment
+    from sync_manager import sync_from_environment, sync_from_environment_by_node
 
 # Resolve paths from the project root so the commands work from any folder.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -133,7 +136,11 @@ def main(argv: list[str] | None = None) -> int:
 
         if args.sync:
             # One controlled sync attempt; no endless retry loop in this stage.
-            stats = sync_from_environment(db_connection)
+            # Per-node tokens take priority; the Stage 3 single token still works.
+            if has_node_tokens():
+                stats = sync_from_environment_by_node(db_connection)
+            else:
+                stats = sync_from_environment(db_connection)
     except (
         SimulationError,
         OSError,

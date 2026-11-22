@@ -6,16 +6,19 @@ needed, and the real data/floodsafe.db is never touched.
 
 from __future__ import annotations
 
+import io
 import json
 import os
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import paho.mqtt as paho
 import paho.mqtt.client as mqtt
 
+from src import main as app
 from src import mqtt_client, sync_manager
 from src.database import (
     count_pending_readings,
@@ -23,6 +26,7 @@ from src.database import (
     get_pending_readings,
     initialize_database,
     insert_readings,
+    mark_as_sent,
 )
 from src.simulator import REQUIRED_FIELDS
 
@@ -140,6 +144,59 @@ class MqttClientTests(unittest.TestCase):
         ):
             with self.assertRaises(mqtt_client.MQTTConfigError):
                 mqtt_client.read_settings()
+
+    def test_node_settings_are_read_from_environment(self) -> None:
+        env = {
+            "THINGSBOARD_HOST": "demo.example.com",
+            "FSN_01_TOKEN": "token-one",
+            "FSN_02_TOKEN": "token-two",
+            "FSN_03_TOKEN": "token-three",
+        }
+        with patch.object(mqtt_client, "load_local_env"), patch.dict(
+            os.environ, env, clear=True
+        ):
+            host, tokens = mqtt_client.read_node_settings()
+        self.assertEqual(host, "demo.example.com")
+        self.assertEqual(
+            tokens,
+            {
+                "FSN-01": "token-one",
+                "FSN-02": "token-two",
+                "FSN-03": "token-three",
+            },
+        )
+
+    def test_missing_node_tokens_raise_a_clear_error(self) -> None:
+        with patch.object(mqtt_client, "load_local_env"), patch.dict(
+            os.environ, {"THINGSBOARD_HOST": "demo.example.com"}, clear=True
+        ):
+            with self.assertRaises(mqtt_client.MQTTConfigError) as caught:
+                mqtt_client.read_node_settings()
+        message = str(caught.exception)
+        for name in ("FSN_01_TOKEN", "FSN_02_TOKEN", "FSN_03_TOKEN"):
+            self.assertIn(name, message)
+
+    def test_has_node_tokens_detects_configuration(self) -> None:
+        with patch.object(mqtt_client, "load_local_env"), patch.dict(
+            os.environ, {"FSN_02_TOKEN": "token-two"}, clear=True
+        ):
+            self.assertTrue(mqtt_client.has_node_tokens())
+        with patch.object(mqtt_client, "load_local_env"), patch.dict(
+            os.environ, {}, clear=True
+        ):
+            self.assertFalse(mqtt_client.has_node_tokens())
+
+    def test_placeholder_tokens_are_treated_as_missing(self) -> None:
+        env = {
+            "THINGSBOARD_HOST": "demo.example.com",
+            "FSN_01_TOKEN": "replace-with-fsn-01-reservoir-outlet-token",
+        }
+        with patch.object(mqtt_client, "load_local_env"), patch.dict(
+            os.environ, env, clear=True
+        ):
+            self.assertFalse(mqtt_client.has_node_tokens())
+            with self.assertRaises(mqtt_client.MQTTConfigError):
+                mqtt_client.read_node_settings()
 
     def test_connect_timeout_becomes_friendly_error(self) -> None:
         # Regression: Paho 2.x puts MQTTException in paho.mqtt. An old handler
@@ -264,6 +321,187 @@ class SyncManagerTests(unittest.TestCase):
             [1000, 2000, 3000],
         )
         self.assertEqual(len(get_pending_readings(self.connection)), 0)
+
+
+class PerNodeSyncTests(unittest.TestCase):
+    """Per-device routing tests. Still 100% mock-based, no real broker."""
+
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp_dir.cleanup)
+        self.connection = initialize_database(Path(self.temp_dir.name) / "per_node.db")
+        self.addCleanup(self.connection.close)
+
+    def test_each_node_uses_its_own_token_and_unique_client_id(self) -> None:
+        insert_readings(
+            self.connection,
+            [
+                sample_reading(ts=1000, node_id="FSN-01"),
+                sample_reading(ts=2000, node_id="FSN-02"),
+                sample_reading(ts=3000, node_id="FSN-03"),
+            ],
+        )
+        tokens = {
+            "FSN-01": "token-one",
+            "FSN-02": "token-two",
+            "FSN-03": "token-three",
+        }
+        built: dict[str, object] = {}
+        client_ids: list[str] = []
+
+        def fake_build(token: str, client_id: str = "") -> object:
+            client = object()
+            built[token] = client
+            client_ids.append(client_id)
+            return client
+
+        publisher = MagicMock(return_value=True)
+        with patch.object(
+            mqtt_client, "read_node_settings", return_value=("broker.example", tokens)
+        ), patch.object(mqtt_client, "build_client", side_effect=fake_build), patch.object(
+            mqtt_client, "connect"
+        ), patch.object(mqtt_client, "disconnect"):
+            stats = sync_manager.sync_from_environment_by_node(
+                self.connection, publish_fn=publisher
+            )
+
+        self.assertEqual(stats["sent"], 3)
+        self.assertEqual(count_pending_readings(self.connection), 0)
+        self.assertEqual(set(built), set(tokens.values()))
+        self.assertEqual(
+            sorted(client_ids),
+            sorted(f"{mqtt_client.CLIENT_ID}-{node.lower()}" for node in tokens),
+        )
+        for call in publisher.call_args_list:
+            client, payload = call.args
+            self.assertIs(client, built[tokens[payload["node_id"]]])
+            self.assertEqual(set(payload), set(REQUIRED_FIELDS))
+
+    def test_missing_token_leaves_only_that_nodes_readings_pending(self) -> None:
+        insert_readings(
+            self.connection,
+            [
+                sample_reading(ts=1000, node_id="FSN-01"),
+                sample_reading(ts=2000, node_id="FSN-02"),
+            ],
+        )
+        tokens = {"FSN-02": "token-two"}
+        publisher = MagicMock(return_value=True)
+        stderr = io.StringIO()
+
+        with patch.object(
+            mqtt_client, "read_node_settings", return_value=("broker.example", tokens)
+        ), patch.object(mqtt_client, "build_client", return_value=object()), patch.object(
+            mqtt_client, "connect"
+        ), patch.object(mqtt_client, "disconnect"), redirect_stderr(stderr):
+            stats = sync_manager.sync_from_environment_by_node(
+                self.connection, publish_fn=publisher
+            )
+
+        self.assertEqual(stats["sent"], 1)
+        self.assertEqual(count_pending_readings(self.connection), 1)
+        rows = {
+            row["node_id"]: row
+            for row in self.connection.execute("SELECT * FROM sensor_readings")
+        }
+        self.assertEqual(rows["FSN-01"]["sent"], 0)
+        self.assertEqual(rows["FSN-02"]["sent"], 1)
+        self.assertEqual(publisher.call_count, 1)
+        self.assertEqual(publisher.call_args.args[1]["node_id"], "FSN-02")
+
+        message = stderr.getvalue()
+        self.assertIn("FSN-01", message)
+        self.assertIn("FSN_01_TOKEN", message)
+        self.assertNotIn("token-two", message)  # never reveal a token
+
+    def test_successful_delivery_marks_only_the_confirmed_reading_sent(self) -> None:
+        insert_readings(
+            self.connection,
+            [
+                sample_reading(ts=1000, node_id="FSN-02"),
+                sample_reading(ts=2000, node_id="FSN-01"),
+                sample_reading(ts=3000, node_id="FSN-03"),
+            ],
+        )
+        clients = {node: object() for node in ("FSN-01", "FSN-02", "FSN-03")}
+        publisher = MagicMock(side_effect=[True, False])
+
+        stats = sync_manager.sync_pending_readings_by_node(
+            self.connection, clients, publish_fn=publisher
+        )
+
+        self.assertEqual(stats["sent"], 1)
+        self.assertEqual(stats["failed"], 1)
+        rows = {
+            row["node_id"]: row
+            for row in self.connection.execute("SELECT * FROM sensor_readings")
+        }
+        self.assertEqual(rows["FSN-02"]["sent"], 1)
+        self.assertEqual(rows["FSN-01"]["sent"], 0)
+        self.assertEqual(rows["FSN-03"]["sent"], 0)
+        self.assertEqual(count_pending_readings(self.connection), 2)
+
+    def test_failed_delivery_leaves_reading_pending(self) -> None:
+        insert_readings(self.connection, [sample_reading(node_id="FSN-03")])
+        clients = {"FSN-03": object()}
+
+        stats = sync_manager.sync_pending_readings_by_node(
+            self.connection, clients, publish_fn=MagicMock(return_value=False)
+        )
+
+        self.assertEqual(stats["failed"], 1)
+        self.assertEqual(count_pending_readings(self.connection), 1)
+
+    def test_already_sent_rows_are_not_touched(self) -> None:
+        insert_readings(self.connection, [sample_reading(node_id="FSN-01")])
+        row_id = self.connection.execute("SELECT id FROM sensor_readings").fetchone()["id"]
+        mark_as_sent(self.connection, row_id)
+        select = "SELECT * FROM sensor_readings WHERE id = ?"
+        before = dict(self.connection.execute(select, (row_id,)).fetchone())
+
+        publisher = MagicMock(return_value=True)
+        stats = sync_manager.sync_pending_readings_by_node(
+            self.connection, {"FSN-01": object()}, publish_fn=publisher
+        )
+        after = dict(self.connection.execute(select, (row_id,)).fetchone())
+
+        self.assertEqual(stats["pending"], 0)
+        self.assertEqual(publisher.call_count, 0)
+        self.assertEqual(before, after)
+
+
+class CliRoutingTests(unittest.TestCase):
+    """The CLI chooses per-node sync only when node tokens are configured."""
+
+    def test_sync_uses_per_node_path_when_node_tokens_are_set(self) -> None:
+        connection = MagicMock()
+        with patch.object(app, "initialize_database", return_value=connection), patch.object(
+            app, "has_node_tokens", return_value=True
+        ), patch.object(
+            app,
+            "sync_from_environment_by_node",
+            return_value={"pending": 0, "sent": 0, "failed": 0},
+        ) as per_node, patch.object(app, "sync_from_environment") as legacy:
+            code = app.main(["--sync"])
+
+        self.assertEqual(code, 0)
+        per_node.assert_called_once_with(connection)
+        legacy.assert_not_called()
+
+    def test_sync_falls_back_to_single_token_when_no_node_tokens(self) -> None:
+        connection = MagicMock()
+        with patch.object(app, "initialize_database", return_value=connection), patch.object(
+            app, "has_node_tokens", return_value=False
+        ), patch.object(
+            app,
+            "sync_from_environment",
+            return_value={"pending": 0, "sent": 0, "failed": 0},
+        ) as legacy, patch.object(app, "sync_from_environment_by_node") as per_node:
+            code = app.main(["--sync"])
+
+        self.assertEqual(code, 0)
+        legacy.assert_called_once_with(connection)
+        per_node.assert_not_called()
 
 
 if __name__ == "__main__":

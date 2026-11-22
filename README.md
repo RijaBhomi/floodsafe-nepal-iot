@@ -1,6 +1,6 @@
 # FloodSafe Nepal — IoT Assignment 3
 
-**Current stage: project skeleton, Python virtual sensor simulator, SQLite local buffer, and MQTT/ThingsBoard synchronization.**
+**Current stage: project skeleton, Python virtual sensor simulator, SQLite local buffer, MQTT/ThingsBoard synchronization, and per-node routing to three ThingsBoard devices.**
 
 FloodSafe Nepal is a post-flood water-quality monitoring and decision-support
 prototype for the Internet of Things (ITS67404) Assignment 3. Python simulates
@@ -24,6 +24,8 @@ points in Kathmandu Valley.
   `sent = 0` until they are transmitted.
 - MQTT over TLS publishing to ThingsBoard (`src/mqtt_client.py`) and a one-shot
   synchronization manager (`src/sync_manager.py`).
+- Per-node routing: each virtual node uses its own device token and connects to
+  its own ThingsBoard device.
 - Automated tests for the database and for MQTT/sync using mocks in `tests/`.
 
 ## What is NOT included yet
@@ -40,14 +42,14 @@ run — there is no endless retry loop in this stage.
 | `README.md` | This overview: what the project does, file map, setup and run commands. |
 | `requirements.txt` | Declares Python dependencies (`paho-mqtt`). The simulator and database use only the standard library. |
 | `.gitignore` | Keeps caches, virtual environments, generated `.jsonl` files, `.env` secrets and `.db` files out of Git. |
-| `.env.example` | Placeholder template for `THINGSBOARD_HOST` and `THINGSBOARD_TOKEN`. No real credentials. |
+| `.env.example` | Placeholder template for `THINGSBOARD_HOST`, the three `FSN_XX_TOKEN` values, and the legacy single token. No real credentials. |
 | `config/nodes.json` | The three node identities/coordinates plus configurable baseline and flood settings. |
 | `docs/telemetry_spec.md` | The shared telemetry contract: exact field names, types, units and example reading. |
 | `src/__init__.py` | Marks `src` as a Python package so `python -m src.main` works. |
 | `src/simulator.py` | The sensor models, flood event curve and reading generation logic. No I/O beyond reading the config. |
 | `src/database.py` | SQLite local buffer: creates the table, inserts readings, returns pending rows and marks them sent. |
-| `src/mqtt_client.py` | TLS MQTT client: reads credentials from the environment, publishes 11-field JSON to `v1/devices/me/telemetry` with QoS 1. |
-| `src/sync_manager.py` | Publishes pending SQLite rows and marks them sent only after MQTT confirms delivery. |
+| `src/mqtt_client.py` | TLS MQTT client: reads host and per-node tokens from the environment, gives each device a unique client ID, publishes 11-field JSON to `v1/devices/me/telemetry` with QoS 1. |
+| `src/sync_manager.py` | Publishes pending SQLite rows through the right node's client and marks them sent only after MQTT confirms delivery. |
 | `src/main.py` | Command-line entry point: prints JSON lines, optionally saves to SQLite/JSONL, and optionally runs one MQTT sync. |
 | `data/.gitkeep` | Placeholder so the `data/` directory is tracked by Git. |
 | `data/floodsafe.db` | Generated SQLite database (ignored by Git; created on first `--save-db` run). |
@@ -246,30 +248,39 @@ python3 -c "from src.database import initialize_database, count_readings, count_
 
 | Variable | Meaning |
 | --- | --- |
-| `THINGSBOARD_HOST` | MQTT broker hostname only. Do **not** include `https://` or a port. Use `mqtt.thingsboard.cloud` for ThingsBoard Cloud (North America), `mqtt.eu.thingsboard.cloud` for Europe, or your own server's IP/domain. |
-| `THINGSBOARD_TOKEN` | Access token of one ThingsBoard device. Treat it like a password. |
+| `THINGSBOARD_HOST` | Shared MQTT broker hostname for all three devices. Do **not** include `https://` or a port. Use `mqtt.thingsboard.cloud` for ThingsBoard Cloud (North America), `mqtt.eu.thingsboard.cloud` for Europe, or your own server's IP/domain. |
+| `FSN_01_TOKEN` | Access token of the **FSN-01 Reservoir Outlet** device. |
+| `FSN_02_TOKEN` | Access token of the **FSN-02 Community Tap** device. |
+| `FSN_03_TOKEN` | Access token of the **FSN-03 Tanker Fill Point** device. |
+| `THINGSBOARD_TOKEN` | *Legacy only.* One token for every node. Used **only** when none of the three `FSN_XX_TOKEN` variables are set. |
+
+Each token is a password. Never put one in source code, screenshots or Git.
 
 `demo.thingsboard.io` is a demo **web** account. It is **not** the ThingsBoard
 Cloud MQTT broker, and port 8883 there is not reachable — using it produces
 `timed out`. This is the most common configuration mistake.
 
-### How to find your host and token
+### How to find your host and tokens
 
 1. **Which server are you using?** If you logged in at `thingsboard.cloud`,
    your account is in the North America region and the MQTT host is
    `mqtt.thingsboard.cloud`. If you logged in at `eu.thingsboard.cloud`, use
    `mqtt.eu.thingsboard.cloud`. If you installed ThingsBoard yourself, use that
    machine's IP address or domain name instead.
-2. **Get the token:** in the ThingsBoard web UI open **Devices → your device →
+2. **Get each token:** in the ThingsBoard web UI open **Devices → your device →
    Manage credentials** (or the device's **Check connectivity** dialog) and
-   copy the **access token**. It is a long random string. Never paste it into
-   source code or a screenshot.
-3. **Keep them together:** the token must belong to the same server/region as
+   copy the **access token**. Repeat this for all three devices. Each token is
+   a long random string. Never paste one into source code or a screenshot.
+3. **Keep them together:** all tokens must belong to the same server/region as
    the host. A token from one region will not work in another.
 
-Create a device first if you have not already. Use the token of the device you
-want to simulate (for example `FSN-01`). To send a different node, change the
-token before syncing.
+Routing during `--sync`:
+
+| Reading `node_id` | Token used | ThingsBoard device |
+| --- | --- | --- |
+| `FSN-01` | `FSN_01_TOKEN` | Reservoir Outlet |
+| `FSN-02` | `FSN_02_TOKEN` | Community Tap |
+| `FSN-03` | `FSN_03_TOKEN` | Tanker Fill Point |
 
 Set the variables in your current terminal session:
 
@@ -277,14 +288,18 @@ Windows (PowerShell):
 
 ```powershell
 $env:THINGSBOARD_HOST = "mqtt.thingsboard.cloud"
-$env:THINGSBOARD_TOKEN = "PASTE_DEVICE_ACCESS_TOKEN_HERE"
+$env:FSN_01_TOKEN = "PASTE_FSN_01_DEVICE_TOKEN_HERE"
+$env:FSN_02_TOKEN = "PASTE_FSN_02_DEVICE_TOKEN_HERE"
+$env:FSN_03_TOKEN = "PASTE_FSN_03_DEVICE_TOKEN_HERE"
 ```
 
 macOS / Linux:
 
 ```bash
 export THINGSBOARD_HOST="mqtt.thingsboard.cloud"
-export THINGSBOARD_TOKEN="PASTE_DEVICE_ACCESS_TOKEN_HERE"
+export FSN_01_TOKEN="PASTE_FSN_01_DEVICE_TOKEN_HERE"
+export FSN_02_TOKEN="PASTE_FSN_02_DEVICE_TOKEN_HERE"
+export FSN_03_TOKEN="PASTE_FSN_03_DEVICE_TOKEN_HERE"
 ```
 
 Quick check that the host is reachable from your machine (no token needed):
@@ -303,19 +318,26 @@ notepad .env
 
 `.env` is ignored by Git. Never commit a real token. Variables already set in
 the terminal take priority over the `.env` file, which is useful if several
-group members share the machine.
+group members share the machine. Values still starting with `replace-with-`
+are ignored, so forgotten placeholders are reported as missing tokens instead
+of being sent to the broker.
 
 ### What the MQTT code does
 
 - Connects on port **8883** using **TLS with certificate verification enabled**.
   We never call Paho's insecure-mode function.
-- Uses the device access token as the MQTT **username** and an empty password.
+- Opens one TLS connection per configured node. Each gets a unique MQTT client
+  ID so the broker does not disconnect an earlier node's session.
+- Uses that device's access token as the MQTT **username** and an empty
+  password.
 - Publishes JSON to exactly `v1/devices/me/telemetry`.
 - Uses **QoS 1** and waits for Paho's `wait_for_publish()` confirmation
   (the broker's PUBACK) before anything is marked sent.
 - Sends only the 11 telemetry fields. `id`, `sent` and `sent_at` stay in
   SQLite and never appear in the MQTT payload.
-- Logs only host, topic, timestamp and node ID — never the token.
+- If a node's token is missing, its rows stay pending and the log names the
+  missing environment variable (never a token value). Other nodes still send.
+- Logs only host, node ID, topic, timestamp and sync counts — never a token.
 
 ### Generate readings and synchronize
 
@@ -345,6 +367,36 @@ python -m src.main --scenario flood --count 30 --save-db --sync
 controlled attempt**, not an endless retry loop. If the broker is down, run
 the same `--sync` command again later.
 
+**Already-sent rows are safe.** The sync only queries `sent = 0`, so the 156
+readings sent in Stage 3 are never read, resent, reset or modified.
+
+### Test each device safely
+
+Use three fresh readings — the simulator spreads them one per node:
+
+```powershell
+python -m src.main --scenario normal --count 3 --save-db
+python -m src.main --sync
+```
+
+Then:
+
+1. Watch the `[SYNC]` lines: each should show the node ID in brackets, e.g.
+   `Marked id=1 ts=... (FSN-01) as sent.`
+2. Check the local queue:
+
+   ```powershell
+   python -c "from src.database import initialize_database,count_readings,count_pending_readings; c=initialize_database(); print('stored:',count_readings(c),'pending:',count_pending_readings(c)); c.close()"
+   ```
+
+3. In ThingsBoard, open each device and confirm its **Latest telemetry** shows
+   one new reading with the matching `node_id`.
+4. To test the missing-token path on purpose, temporarily remove one
+   `FSN_XX_TOKEN` from the terminal, generate one more reading and sync. The
+   log should name the missing variable (for example `FSN_02_TOKEN`), never a
+   token value, and that node's row should stay pending. Set the token again
+   and re-run `--sync` — the row will then be delivered without regeneration.
+
 ### Pending versus sent readings
 
 | `sent` value | Meaning |
@@ -354,9 +406,11 @@ the same `--sync` command again later.
 
 During an outage, readings keep accumulating with `sent = 0`. Nothing is
 deleted. When connectivity returns, `--sync` reads pending rows oldest-first,
-publishes them, and marks each one sent only after the broker confirms it. If
-one publish fails, the sync stops so the broker is not hammered; that row and
-all later rows remain pending for the next run.
+publishes them through the matching node's MQTT client, and marks each one sent
+only after the broker confirms it. If one publish fails, the sync stops so the
+broker is not hammered; that row and all later rows remain pending for the next
+run. If a node has no token configured, only that node's rows are skipped and
+stay pending — the other nodes still send.
 
 Check the counts with:
 
@@ -368,16 +422,19 @@ python -c "from src.database import initialize_database,count_readings,count_pen
 
 - **Tested automatically with mocks:** topic, QoS 1, JSON payload field list,
   delivery confirmation, marking sent after success, leaving rows pending
-  after failure or connection error, retry behaviour, and timestamp ordering.
-- **Requires a real ThingsBoard connection:** confirming that your host,
-  token, TLS certificate and device are correct, and seeing data in the
-  ThingsBoard device view. The unit tests deliberately do not do this.
+  after failure or connection error, retry behaviour, timestamp ordering,
+  per-node token routing, unique client IDs, missing-token handling, and that
+  already-sent rows are untouched.
+- **Requires a real ThingsBoard connection:** confirming that your host, all
+  three tokens, TLS certificate and devices are correct, and seeing each
+  device's data in the ThingsBoard device view. The unit tests deliberately do
+  not do this.
 
 ### Run the tests
 
 The database tests use a temporary SQLite file and the MQTT tests use mocks, so
 `data/floodsafe.db` and any real ThingsBoard connection are never used. Run
-all 26 tests from the project root:
+all 37 tests from the project root:
 
 Windows (PowerShell):
 
