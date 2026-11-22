@@ -3,10 +3,12 @@
 Example:
     python -m src.main --scenario flood --count 12 --output output/flood.jsonl
     python -m src.main --scenario normal --count 30 --save-db
+    python -m src.main --sync
 
 Each reading is printed as one JSON object on its own line. The optional
 "--output" file receives the same lines (JSON Lines format). The optional
-"--save-db" flag also stores the readings in the local SQLite buffer.
+"--save-db" flag also stores the readings in the local SQLite buffer. The
+optional "--sync" flag publishes pending rows to ThingsBoard once.
 """
 
 from __future__ import annotations
@@ -25,10 +27,14 @@ try:
         initialize_database,
         insert_readings,
     )
+    from .mqtt_client import MQTTConfigError, MQTTError
     from .simulator import SCENARIOS, SimulationError, generate_readings, load_config
+    from .sync_manager import sync_from_environment
 except ImportError:  # pragma: no cover - only used when run as a plain script
     from database import count_pending_readings, initialize_database, insert_readings
+    from mqtt_client import MQTTConfigError, MQTTError
     from simulator import SCENARIOS, SimulationError, generate_readings, load_config
+    from sync_manager import sync_from_environment
 
 # Resolve paths from the project root so the commands work from any folder.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -52,15 +58,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--scenario",
-        required=True,
         choices=SCENARIOS,
-        help="which sensor model to run",
+        help="which sensor model to run (required unless --sync is used alone)",
     )
     parser.add_argument(
         "--count",
-        required=True,
         type=positive_int,
-        help="total number of readings to generate (spread across the 3 nodes)",
+        help="total readings to generate (spread across the 3 nodes)",
     )
     parser.add_argument(
         "--output",
@@ -75,33 +79,46 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="also save the readings to the local SQLite buffer (data/floodsafe.db)",
     )
+    parser.add_argument(
+        "--sync",
+        action="store_true",
+        help="publish pending readings to ThingsBoard once, then exit (no retry loop)",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
 
-    db_connection: sqlite3.Connection | None = None
-    try:
-        config = load_config(DEFAULT_CONFIG)
-        readings = generate_readings(config, args.scenario, args.count)
+    # Keep the old CLI behaviour, and allow "--sync" on its own.
+    if not args.sync and (args.scenario is None or args.count is None):
+        print("Error: --scenario and --count are required unless --sync is used.", file=sys.stderr)
+        return 2
+    if args.sync and args.scenario is not None and not args.save_db:
+        print("Error: --sync with new readings also needs --save-db.", file=sys.stderr)
+        return 2
 
-        output_path: Path | None = None
+    db_connection: sqlite3.Connection | None = None
+    readings: list[dict] = []
+    output_path: Path | None = None
+    inserted = 0
+    pending = 0
+    stats: dict[str, int] | None = None
+
+    try:
+        if args.scenario is not None:
+            config = load_config(DEFAULT_CONFIG)
+            readings = generate_readings(config, args.scenario, args.count)
+
         if args.output:
             output_path = Path(args.output)
             if not output_path.is_absolute():
                 output_path = PROJECT_ROOT / output_path
             output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        if args.save_db:
+        if args.save_db or args.sync:
             db_connection = initialize_database()
-    except (SimulationError, OSError, sqlite3.Error) as exc:
-        print(f"Error: {exc}", file=sys.stderr)
-        return 1
 
-    inserted = 0
-    pending = 0
-    try:
         # Serialize once so stdout and the optional file are identical.
         lines = [json.dumps(reading) for reading in readings]
 
@@ -113,7 +130,18 @@ def main(argv: list[str] | None = None) -> int:
         if db_connection is not None:
             inserted = insert_readings(db_connection, readings)
             pending = count_pending_readings(db_connection)
-    except (OSError, sqlite3.Error, ValueError) as exc:
+
+        if args.sync:
+            # One controlled sync attempt; no endless retry loop in this stage.
+            stats = sync_from_environment(db_connection)
+    except (
+        SimulationError,
+        OSError,
+        sqlite3.Error,
+        ValueError,
+        MQTTConfigError,
+        MQTTError,
+    ) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
     finally:
@@ -126,11 +154,17 @@ def main(argv: list[str] | None = None) -> int:
 
     if output_path is not None:
         print(f"Saved {len(lines)} readings to {output_path}", file=sys.stderr)
-    if db_connection is not None:
+    if args.save_db:
         print(
             f"Saved {inserted} readings to database; "
             f"skipped {len(readings) - inserted} duplicates; "
             f"pending (unsent): {pending}",
+            file=sys.stderr,
+        )
+    if stats is not None:
+        print(
+            f"MQTT sync finished: sent={stats['sent']}, failed={stats['failed']}, "
+            f"attempted={stats['pending']}",
             file=sys.stderr,
         )
     return 0

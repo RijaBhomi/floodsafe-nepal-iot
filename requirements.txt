@@ -1,4 +1,4 @@
-# FloodSafe Nepal currently has no third-party Python dependencies.
-# The simulator uses only modules from the Python 3.10+ standard library
-# (argparse, json, math, pathlib, random, time, typing).
-# Future assignment stages may add packages here (for example paho-mqtt).
+# FloodSafe Nepal Python dependencies.
+# paho-mqtt is required only for Stage 3 (MQTT publishing to ThingsBoard).
+# Everything else (simulator, SQLite, tests) uses the Python standard library.
+paho-mqtt>=2.0,<3

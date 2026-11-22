@@ -15,6 +15,9 @@ output/*.jsonl
 data/*.db
 data/*.db-*
 
+# Local secrets (never commit real ThingsBoard tokens)
+.env
+
 # Operating system files
 .DS_Store
 Thumbs.db
