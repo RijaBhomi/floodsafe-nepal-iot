@@ -65,6 +65,20 @@ run are spaced by `sample_interval_ms` from the configuration. The simulator
 does not sleep between samples, so a run completes immediately while the
 timestamps still represent a regular sampling timeline.
 
+## MQTT wire format
+
+The simulator, JSON Lines output and SQLite rows stay flat as shown above. The
+MQTT publisher wraps the same 11 fields in ThingsBoard's timestamp envelope:
+
+```json
+{"ts": 1790000000000, "values": {"ts": 1790000000000, "node_id": "FSN-01", "water_point": "Reservoir Outlet", "latitude": 27.745, "longitude": 85.4167, "ph": 7.12, "turbidity_ntu": 4.8, "tds_ppm": 185, "water_temp_c": 21.4, "flow_lpm": 12.6, "scenario": "normal"}}
+```
+
+The outer `ts` becomes the ThingsBoard record timestamp, so buffered readings
+replay with their original client timestamps rather than the sync time. `ts` is
+also kept inside `values` so dashboard widgets that read the `ts` telemetry key
+continue to work. Database-only columns (`id`, `sent`, `sent_at`) are never sent.
+
 ## Node locations
 
 The three coordinates are distinct points in Kathmandu Valley chosen for the

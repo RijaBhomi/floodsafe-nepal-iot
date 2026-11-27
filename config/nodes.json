@@ -1,21 +1,24 @@
 {
-  "coordinate_notice": "Demonstration coordinates only. These points are inside Kathmandu Valley for the prototype and are not verified deployment sites or claims of installed equipment.",
+  "coordinate_notice": "Demonstration coordinates only. These points are inside Kathmandu Valley for the prototype and are not verified deployment sites or claims of installed equipment. District values were derived by reverse-geocoding these demonstration coordinates with OpenStreetMap/Nominatim on 2026-11-27; they describe the demo points, not certified installations.",
   "nodes": [
     {
       "node_id": "FSN-01",
       "water_point": "Reservoir Outlet",
+      "district": "Kathmandu",
       "latitude": 27.745,
       "longitude": 85.4167
     },
     {
       "node_id": "FSN-02",
       "water_point": "Community Tap",
+      "district": "Kathmandu",
       "latitude": 27.712,
       "longitude": 85.322
     },
     {
       "node_id": "FSN-03",
       "water_point": "Tanker Fill Point",
+      "district": "Lalitpur",
       "latitude": 27.671,
       "longitude": 85.318
     }

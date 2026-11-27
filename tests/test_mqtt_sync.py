@@ -101,11 +101,20 @@ class FailingPublishClient:
 
 
 class MqttClientTests(unittest.TestCase):
-    def test_payload_contains_only_the_11_telemetry_fields(self) -> None:
+    def test_payload_uses_timestamp_envelope_with_the_11_telemetry_fields(self) -> None:
         payload = mqtt_client.telemetry_payload(reading_with_db_fields())
-        self.assertEqual(set(payload), set(REQUIRED_FIELDS))
+        self.assertEqual(set(payload), {"ts", "values"})
+        self.assertEqual(payload["ts"], 1790000000000)
+        self.assertEqual(set(payload["values"]), set(REQUIRED_FIELDS))
+        self.assertEqual(payload["values"]["ts"], 1790000000000)
         for name in ("id", "sent", "sent_at"):
             self.assertNotIn(name, payload)
+            self.assertNotIn(name, payload["values"])
+
+    def test_envelope_keeps_the_original_client_timestamp_for_replay(self) -> None:
+        payload = mqtt_client.telemetry_payload(sample_reading(ts=1000))
+        self.assertEqual(payload["ts"], 1000)
+        self.assertEqual(payload["values"]["ts"], 1000)
 
     def test_publish_uses_exact_topic_qos1_and_json(self) -> None:
         info = FakePublishInfo(published=True)
@@ -117,8 +126,10 @@ class MqttClientTests(unittest.TestCase):
         self.assertEqual(qos, 1)
         self.assertEqual(info.wait_timeout, mqtt_client.PUBLISH_TIMEOUT_SECONDS)
         parsed = json.loads(payload)
-        self.assertEqual(set(parsed), set(REQUIRED_FIELDS))
+        self.assertEqual(set(parsed), {"ts", "values"})
         self.assertEqual(parsed["ts"], 1790000000000)
+        self.assertEqual(set(parsed["values"]), set(REQUIRED_FIELDS))
+        self.assertEqual(parsed["values"]["ts"], 1790000000000)
 
     def test_publish_returns_false_without_delivery_confirmation(self) -> None:
         client = FakeClient(FakePublishInfo(published=False))
@@ -240,6 +251,21 @@ class SyncManagerTests(unittest.TestCase):
         # The publisher received a reading without database-only fields.
         published = publisher.call_args.args[1]
         self.assertEqual(set(published.keys()), set(REQUIRED_FIELDS))
+
+    def test_sync_wire_payload_has_a_single_timestamp_envelope(self) -> None:
+        insert_readings(self.connection, [sample_reading(ts=1000)])
+        client = FakeClient(FakePublishInfo(published=True))
+
+        stats = sync_manager.sync_pending_readings(self.connection, client=client)
+
+        self.assertEqual(stats["sent"], 1)
+        self.assertEqual(len(client.calls), 1)
+        parsed = json.loads(client.calls[0][1])
+        self.assertEqual(set(parsed), {"ts", "values"})
+        self.assertEqual(parsed["ts"], 1000)
+        self.assertEqual(set(parsed["values"]), set(REQUIRED_FIELDS))
+        self.assertEqual(parsed["values"]["ts"], 1000)
+        self.assertNotIn("values", parsed["values"])
 
     def test_failed_publish_leaves_reading_pending(self) -> None:
         insert_readings(self.connection, [sample_reading()])

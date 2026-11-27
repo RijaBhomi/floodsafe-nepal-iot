@@ -50,8 +50,9 @@ def sync_pending_readings(
         _log(f"Found {len(pending)} pending reading(s).")
 
     for row in pending:
-        # Strip database-only fields before handing the reading to MQTT.
-        payload = mqtt_client.telemetry_payload(row)
+        # Hand the publisher a flat 11-field reading; publish_reading() applies
+        # the timestamp envelope once, so replay keeps the original client ts.
+        payload = mqtt_client.telemetry_values(row)
         try:
             delivered = publish_fn(client, payload)
         except Exception as exc:  # network errors vary by library and OS
@@ -133,8 +134,9 @@ def sync_pending_readings_by_node(
             failed_count += 1
             continue  # keep going so configured nodes still get their data
 
-        # Strip database-only fields before handing the reading to MQTT.
-        payload = mqtt_client.telemetry_payload(row)
+        # Hand the publisher a flat 11-field reading; publish_reading() applies
+        # the timestamp envelope once, so replay keeps the original client ts.
+        payload = mqtt_client.telemetry_values(row)
         try:
             delivered = publish_fn(client, payload)
         except Exception as exc:  # network errors vary by library and OS

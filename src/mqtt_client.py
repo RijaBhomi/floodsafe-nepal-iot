@@ -1,8 +1,10 @@
 """Small MQTT client for publishing FloodSafe Nepal telemetry to ThingsBoard.
 
 This module only knows about networking. It does not generate readings and it
-does not touch the database. Credentials come from environment variables (or an
-optional local .env file); they are never hardcoded or printed.
+does not touch the database. Telemetry is published in ThingsBoard's timestamp
+envelope so buffered readings keep their original client timestamps. Credentials
+come from environment variables (or an optional local .env file); they are never
+hardcoded or printed.
 
 Paho MQTT is the only third-party library used by this module.
 """
@@ -189,9 +191,22 @@ def disconnect(client: mqtt.Client) -> None:
         _log(f"Disconnect warning: {exc}")
 
 
-def telemetry_payload(reading: Mapping[str, Any]) -> dict[str, Any]:
+def telemetry_values(reading: Mapping[str, Any]) -> dict[str, Any]:
     """Return ONLY the 11 telemetry fields, never database-only fields."""
     return {field: reading[field] for field in REQUIRED_FIELDS}
+
+
+def telemetry_payload(reading: Mapping[str, Any]) -> dict[str, Any]:
+    """Return a ThingsBoard timestamp envelope containing the 11 telemetry fields.
+
+    ThingsBoard stores ``payload['ts']`` as the record timestamp. Putting the
+    simulated acquisition time there means buffered rows replay with their
+    original timestamps instead of the time the sync happened. ``ts`` is also
+    kept inside ``values`` so the dashboard's existing `ts` telemetry key and
+    node-health column continue to work. Database-only fields are never sent.
+    """
+    values = telemetry_values(reading)
+    return {"ts": values["ts"], "values": values}
 
 
 def _reading_label(reading: Mapping[str, Any]) -> str:

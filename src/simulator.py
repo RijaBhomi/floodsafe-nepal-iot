@@ -3,6 +3,8 @@
 This module turns a small JSON configuration into realistic-looking
 water-quality readings. It deliberately contains no database, MQTT, cloud or
 dashboard code — only the sensor models and the shared telemetry schema.
+The "response" scenario emits a deterministic Intervention → containment →
+verification → recovery sequence for the operational-response demo.
 
 Only Python's standard library is used.
 """
@@ -17,7 +19,21 @@ from pathlib import Path
 from typing import Any
 
 # The only scenario names accepted by the command line and the simulator.
-SCENARIOS = ("normal", "flood")
+SCENARIOS = ("normal", "flood", "response")
+
+# Deterministic intervention-response demonstration sequence. Each node receives one step
+# per round-robin pass, so "--scenario response --count 18" gives every node all
+# six steps. Values are chosen to match the documented alarm clear thresholds
+# and the operational_state transform; they are scenario data, not a mid-demo
+# script edit. Water temperature still comes from the normal baseline model.
+RESPONSE_STEPS = (
+    {"ph": 6.2, "turbidity_ntu": 260, "tds_ppm": 600, "flow_lpm": 12},
+    {"ph": 6.2, "turbidity_ntu": 260, "tds_ppm": 600, "flow_lpm": 12},
+    {"ph": 6.2, "turbidity_ntu": 260, "tds_ppm": 600, "flow_lpm": 0},
+    {"ph": 7.1, "turbidity_ntu": 4, "tds_ppm": 180, "flow_lpm": 0},
+    {"ph": 7.1, "turbidity_ntu": 4, "tds_ppm": 180, "flow_lpm": 12},
+    {"ph": 7.1, "turbidity_ntu": 4, "tds_ppm": 180, "flow_lpm": 12},
+)
 
 # The exact key set of one telemetry reading. Keeping this in one place makes
 # it easy to check that every code path produces the same schema.
@@ -197,6 +213,15 @@ def make_reading(
         turbidity = rng.uniform(turbidity_low, turbidity_high)
         tds = rng.uniform(tds_low, tds_high)
         flow = rng.uniform(flow_low, flow_high)
+
+    elif scenario == "response":
+        # Intervention response: fixed, documented steps. This is scenario data,
+        # so the demo never depends on editing values by hand mid-run.
+        values = RESPONSE_STEPS[step % len(RESPONSE_STEPS)]
+        ph = values["ph"]
+        turbidity = values["turbidity_ntu"]
+        tds = values["tds_ppm"]
+        flow = float(values["flow_lpm"])
 
     else:  # scenario == "flood"
         # Flood mode: ONE severity value drives all four affected parameters.

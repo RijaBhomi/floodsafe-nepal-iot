@@ -3,6 +3,7 @@
 Example:
     python -m src.main --scenario flood --count 12 --output output/flood.jsonl
     python -m src.main --scenario normal --count 30 --save-db
+    python -m src.main --scenario response --count 18 --save-db --sync
     python -m src.main --sync
 
 Each reading is printed as one JSON object on its own line. The optional

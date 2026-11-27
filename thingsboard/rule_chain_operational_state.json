@@ -1,0 +1,60 @@
+{
+  "ruleChain": {
+    "additionalInfo": {
+      "description": "Template only. Link from Root Rule Chain via a Rule Chain node after Save Timeseries. State thresholds are PROPOSED and require group approval."
+    },
+    "name": "FloodSafe Operational State",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": false,
+    "configuration": null
+  },
+  "metadata": {
+    "firstNodeIndex": 0,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "description": null,
+          "layoutX": 320,
+          "layoutY": 200
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Compute operational_state (PROPOSED)",
+        "configurationVersion": 0,
+        "debugFailures": false,
+        "debugAll": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "// FloodSafe Nepal — server-side operational state (TBEL transform node).\n//\n// IMPORTANT — PROPOSED MAPPING, NOT AN ASSIGNMENT SPECIFICATION.\n// Assessment 1 Table 4 defines the four states qualitatively and says rules\n// are location-specific and need persistent readings before escalation.\n// No numeric transition thresholds, persistence counts or escalation timings\n// are given in the assignment documents. The constants below are a candidate\n// mapping derived from documented NDWQS values and the exact Task 3 alarm\n// severities. Your group MUST approve them before using this in a submission.\n//\n// This node is stateless: it cannot count readings over time. \"Multiple\n// abnormal readings\" is represented here by two or more abnormal VALUES in\n// the same reading, which is an explicit simplification, not the documented\n// persistence rule. See operational_states.md for the compatible options.\n\nvar WATCH_TURBIDITY_NTU = 5;        // NDWQS screening value (Assessment 1)\nvar WATCH_TDS_PPM = 1000;           // NDWQS screening value (Assessment 1)\nvar PH_LOW = 6.5;                   // NDWQS / Task 3 critical boundary\nvar PH_HIGH = 8.5;                  // NDWQS / Task 3 critical boundary\nvar HIGH_TURBIDITY_WARNING = 50;    // Task 3: High Turbidity Warning create\nvar GROSS_CONTAMINATION = 200;      // Task 3: Gross Contamination Critical create\nvar HIGH_TDS_CRITICAL = 500;        // Task 3: High TDS Critical create\n\nvar turbidity = msg['turbidity_ntu'] || 0;\nvar ph = msg['ph'] || 0;\nvar tds = msg['tds_ppm'] || 0;\nvar flow = msg['flow_lpm'] || 0;\n\nvar unusualCount = 0;\nif (turbidity > WATCH_TURBIDITY_NTU) {\n    unusualCount = unusualCount + 1;\n}\nif (ph < PH_LOW || ph > PH_HIGH) {\n    unusualCount = unusualCount + 1;\n}\nif (tds > WATCH_TDS_PPM) {\n    unusualCount = unusualCount + 1;\n}\n\nvar critical = (turbidity > GROSS_CONTAMINATION) ||\n               (ph < PH_LOW || ph > PH_HIGH) ||\n               (tds > HIGH_TDS_CRITICAL);\nvar major = (flow == 0);   // Supply Interruption is Major in Task 3\nvar warning = (turbidity > HIGH_TURBIDITY_WARNING);\n\nvar state;\nif (critical) {\n    state = 'Intervention';   // Critical alarm severity -> decision-support state\n} else if (major || unusualCount >= 2) {\n    state = 'Investigate';    // Major severity / multiple abnormal values\n} else if (warning || unusualCount >= 1) {\n    state = 'Watch';          // Warning severity / one unusual value\n} else {\n    state = 'Normal';\n}\n\n// Node Inactive is a Critical alarm but produces no telemetry, so this\n// transform cannot change the state while a node is offline. The alarm table\n// and map marker still show it. Document this limitation in the report.\n\nmsg['operational_state'] = state;\n\n// TbTransformMsgNode requires the full output envelope, not just the payload.\nreturn {msg: msg, metadata: metadata, msgType: msgType};\n",
+          "tbelScript": "var WATCH_TURBIDITY_NTU = 5;\nvar WATCH_TDS_PPM = 1000;\nvar PH_LOW = 6.5;\nvar PH_HIGH = 8.5;\nvar HIGH_TURBIDITY_WARNING = 50;\nvar GROSS_CONTAMINATION = 200;\nvar HIGH_TDS_CRITICAL = 500;\n\nvar turbidity = msg['turbidity_ntu'];\nif (turbidity == null) { turbidity = 0; }\nvar ph = msg['ph'];\nif (ph == null) { ph = 0; }\nvar tds = msg['tds_ppm'];\nif (tds == null) { tds = 0; }\nvar flow = msg['flow_lpm'];\nif (flow == null) { flow = 0; }\n\nvar unusualCount = 0;\nif (turbidity > WATCH_TURBIDITY_NTU) { unusualCount = unusualCount + 1; }\nif (ph < PH_LOW || ph > PH_HIGH) { unusualCount = unusualCount + 1; }\nif (tds > WATCH_TDS_PPM) { unusualCount = unusualCount + 1; }\n\nvar critical = (turbidity > GROSS_CONTAMINATION) || (ph < PH_LOW || ph > PH_HIGH) || (tds > HIGH_TDS_CRITICAL);\nvar major = (flow == 0);\nvar warning = (turbidity > HIGH_TURBIDITY_WARNING);\n\nvar state;\nif (critical) { state = 'Intervention'; }\nelse if (major || unusualCount >= 2) { state = 'Investigate'; }\nelse if (warning || unusualCount >= 1) { state = 'Watch'; }\nelse { state = 'Normal'; }\n\nmsg['operational_state'] = state;\nreturn {msg: msg, metadata: metadata, msgType: msgType};"
+        }
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 700,
+          "layoutY": 200
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "Save operational_state",
+        "configurationVersion": 1,
+        "debugFailures": false,
+        "debugAll": false,
+        "configuration": {
+          "defaultTTL": 0,
+          "useServerTs": false,
+          "processingSettings": {
+            "type": "ON_EVERY_MESSAGE"
+          }
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 0,
+        "toIndex": 1,
+        "type": "Success"
+      }
+    ],
+    "ruleChainConnections": null
+  }
+}

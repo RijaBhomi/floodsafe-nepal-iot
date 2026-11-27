@@ -1,0 +1,2613 @@
+{
+  "title": "FloodSafe Nepal — Municipal Operations",
+  "name": "FloodSafe Nepal — Municipal Operations",
+  "image": null,
+  "mobileHide": false,
+  "mobileOrder": null,
+  "configuration": {
+    "description": "Light municipal flood-monitoring operations view: colour-filled state counts, active alarm summary, map, priority attention list, node health, metadata and telemetry detail.",
+    "widgets": {
+      "3a9ba5a6-1db5-5a18-977c-be678f06098c": {
+        "id": "3a9ba5a6-1db5-5a18-977c-be678f06098c",
+        "type": "latest",
+        "typeFullFqn": "system.cards.entities_table",
+        "sizeX": 24,
+        "sizeY": 7,
+        "row": 23,
+        "col": 0,
+        "config": {
+          "showTitle": true,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "settings": {
+            "entitiesTitle": "Water points",
+            "enableSearch": false,
+            "enableSelectColumnDisplay": true,
+            "enableStickyHeader": true,
+            "displayEntityName": true,
+            "displayEntityType": false,
+            "displayPagination": false,
+            "defaultPageSize": 10,
+            "defaultSortOrder": "displayName"
+          },
+          "title": "Operational state by water point",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {
+            "rowClick": [
+              {
+                "name": "Open node detail",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "node_detail",
+                "setEntityId": true
+              }
+            ]
+          },
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "4362b944-40bc-5596-be72-bc3fa7b4a344",
+              "dataKeys": [
+                {
+                  "name": "operational_state",
+                  "type": "timeseries",
+                  "label": "State",
+                  "color": "#2e7d32",
+                  "settings": {
+                    "columnWidth": "110px",
+                    "useCellStyleFunction": true,
+                    "cellStyleFunction": "if (value == 'Intervention') return '#d32f2f';\nif (value == 'Investigate') return '#f57c00';\nif (value == 'Watch') return '#fbc02d';\nreturn '#2e7d32';",
+                    "useCellContentFunction": false,
+                    "cellContentFunction": ""
+                  }
+                },
+                {
+                  "name": "turbidity_ntu",
+                  "type": "timeseries",
+                  "label": "Turbidity (NTU)",
+                  "color": "#ffc107",
+                  "settings": {},
+                  "decimals": 1
+                },
+                {
+                  "name": "ph",
+                  "type": "timeseries",
+                  "label": "pH",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "decimals": 2
+                },
+                {
+                  "name": "tds_ppm",
+                  "type": "timeseries",
+                  "label": "TDS (ppm)",
+                  "color": "#9c27b0",
+                  "settings": {},
+                  "decimals": 0
+                },
+                {
+                  "name": "ts",
+                  "type": "timeseries",
+                  "label": "Telemetry time",
+                  "color": "#607d8b",
+                  "settings": {
+                    "useCellContentFunction": true,
+                    "cellContentFunction": "var n = Number(value);\nif (!Number.isFinite(n) || n <= 0) return '—';\nreturn new Date(n).toLocaleString();"
+                  }
+                }
+              ]
+            }
+          ],
+          "titleColor": "#1e293b"
+        }
+      },
+      "d4568d89-4bd1-56f4-9cc2-7f91e4af24a5": {
+        "id": "d4568d89-4bd1-56f4-9cc2-7f91e4af24a5",
+        "type": "alarm",
+        "typeFullFqn": "system.alarm_widgets.alarms_table",
+        "sizeX": 12,
+        "sizeY": 7,
+        "row": 16,
+        "col": 12,
+        "config": {
+          "showTitle": true,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "settings": {
+            "enableSelection": true,
+            "enableSearch": true,
+            "displayDetails": true,
+            "displayActivity": true,
+            "allowAcknowledgment": true,
+            "allowClear": true,
+            "allowAssign": true,
+            "displayPagination": true,
+            "defaultPageSize": 10,
+            "defaultSortOrder": "-createdTime",
+            "enableFilter": true,
+            "enableSelectColumnDisplay": true,
+            "alarmsTitle": "Active and cleared alarms — last 24h",
+            "noDataDisplayMessage": "No active or cleared alarms in this time window."
+          },
+          "title": "Active and cleared alarms — last 24h",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "timewindow": {
+            "realtime": {
+              "interval": 1000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 200
+            }
+          },
+          "useDashboardTimewindow": false,
+          "displayTimewindow": true,
+          "alarmSource": {
+            "type": "entity",
+            "name": "alarms",
+            "entityAliasId": "4362b944-40bc-5596-be72-bc3fa7b4a344",
+            "filterId": null,
+            "dataKeys": [
+              {
+                "name": "createdTime",
+                "type": "alarm",
+                "label": "Created",
+                "color": "#2196f3",
+                "settings": {}
+              },
+              {
+                "name": "originator",
+                "type": "alarm",
+                "label": "Device",
+                "color": "#4caf50",
+                "settings": {}
+              },
+              {
+                "name": "type",
+                "type": "alarm",
+                "label": "Alarm",
+                "color": "#f44336",
+                "settings": {}
+              },
+              {
+                "name": "severity",
+                "type": "alarm",
+                "label": "Severity",
+                "color": "#ffc107",
+                "settings": {}
+              },
+              {
+                "name": "status",
+                "type": "alarm",
+                "label": "Status",
+                "color": "#607d8b",
+                "settings": {}
+              },
+              {
+                "name": "startTime",
+                "type": "alarm",
+                "label": "Duration",
+                "color": "#9c27b0",
+                "settings": {
+                  "columnWidth": "90px",
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": true,
+                  "cellContentFunction": "var start = alarm.startTs || value;\nvar end = alarm.cleared && alarm.endTs ? alarm.endTs : Date.now();\nvar seconds = Math.max(0, Math.floor((end - start) / 1000));\nvar hours = Math.floor(seconds / 3600);\nvar minutes = Math.floor((seconds % 3600) / 60);\nvar secs = seconds % 60;\nreturn (hours ? hours + 'h ' : '') + (minutes ? minutes + 'm ' : '') + secs + 's';"
+                }
+              }
+            ]
+          },
+          "alarmFilterConfig": {
+            "statusList": [
+              "ACTIVE",
+              "CLEARED"
+            ],
+            "severityList": [],
+            "typeList": [],
+            "searchPropagatedAlarms": true,
+            "assignedToCurrentUser": false,
+            "assigneeId": null
+          },
+          "alarmsPollingInterval": 5,
+          "datasources": [],
+          "titleColor": "#1e293b"
+        }
+      },
+      "0192d5d3-4f9a-54ff-97c7-1990466eb7f0": {
+        "id": "0192d5d3-4f9a-54ff-97c7-1990466eb7f0",
+        "type": "latest",
+        "typeFullFqn": "system.cards.entities_table",
+        "sizeX": 12,
+        "sizeY": 7,
+        "row": 16,
+        "col": 0,
+        "config": {
+          "showTitle": true,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "settings": {
+            "entitiesTitle": "Node health",
+            "enableSearch": false,
+            "displayEntityName": true,
+            "displayEntityType": false,
+            "displayPagination": false,
+            "defaultSortOrder": "displayName"
+          },
+          "title": "Node health — device state / last activity",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "4362b944-40bc-5596-be72-bc3fa7b4a344",
+              "dataKeys": [
+                {
+                  "name": "active",
+                  "type": "attribute",
+                  "label": "Status",
+                  "color": "#2e7d32",
+                  "settings": {
+                    "columnWidth": "82px",
+                    "useCellStyleFunction": true,
+                    "cellStyleFunction": "if (value === true || value === 'true') return '#2e7d32';\nif (value === false || value === 'false') return '#d32f2f';\nreturn '#9e9e9e';",
+                    "useCellContentFunction": true,
+                    "cellContentFunction": "if (value === true || value === 'true') return 'ONLINE';\nif (value === false || value === 'false') return 'OFFLINE';\nreturn 'UNKNOWN';"
+                  }
+                },
+                {
+                  "name": "node_id",
+                  "type": "timeseries",
+                  "label": "Node ID",
+                  "color": "#2196f3",
+                  "settings": {}
+                },
+                {
+                  "name": "water_point",
+                  "type": "timeseries",
+                  "label": "Water point",
+                  "color": "#4caf50",
+                  "settings": {}
+                },
+                {
+                  "name": "lastActivityTime",
+                  "type": "attribute",
+                  "label": "Last activity",
+                  "color": "#607d8b",
+                  "settings": {
+                    "useCellContentFunction": true,
+                    "cellContentFunction": "var n = Number(value);\nif (!Number.isFinite(n) || n <= 0) return '—';\nreturn new Date(n).toLocaleString();"
+                  }
+                },
+                {
+                  "name": "ts",
+                  "type": "timeseries",
+                  "label": "Telemetry time",
+                  "color": "#607d8b",
+                  "settings": {
+                    "useCellContentFunction": true,
+                    "cellContentFunction": "var n = Number(value);\nif (!Number.isFinite(n) || n <= 0) return '—';\nreturn new Date(n).toLocaleString();"
+                  }
+                },
+                {
+                  "name": "flow_lpm",
+                  "type": "timeseries",
+                  "label": "Flow (L/min)",
+                  "color": "#ffc107",
+                  "settings": {},
+                  "decimals": 1
+                },
+                {
+                  "name": "scenario",
+                  "type": "timeseries",
+                  "label": "Scenario",
+                  "color": "#9c27b0",
+                  "settings": {}
+                }
+              ]
+            }
+          ],
+          "titleColor": "#1e293b"
+        }
+      },
+      "3d9d454f-77e7-5124-a932-dea99f10ff86": {
+        "id": "3d9d454f-77e7-5124-a932-dea99f10ff86",
+        "type": "latest",
+        "typeFullFqn": "system.analogue_gauges.radial_gauge_canvas_gauges",
+        "sizeX": 5,
+        "sizeY": 5,
+        "row": 5,
+        "col": 0,
+        "config": {
+          "showTitle": true,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "settings": {
+            "minValue": 5.5,
+            "maxValue": 9.5,
+            "startAngle": 45,
+            "ticksAngle": 270,
+            "showBorder": true,
+            "defaultColor": "#2e7d32",
+            "highlights": [
+              {
+                "from": 5.5,
+                "to": 6.5,
+                "color": "#d32f2f"
+              },
+              {
+                "from": 6.5,
+                "to": 8.5,
+                "color": "#2e7d32"
+              },
+              {
+                "from": 8.5,
+                "to": 9.5,
+                "color": "#d32f2f"
+              }
+            ],
+            "highlightsWidth": 15,
+            "minorTicks": 10,
+            "valueInt": 2,
+            "valueBox": true,
+            "animation": true,
+            "animationDuration": 500,
+            "animationRule": "cycle",
+            "showUnitTitle": true,
+            "unitsFont": {
+              "family": "Roboto",
+              "size": 18,
+              "style": "normal",
+              "weight": "500"
+            }
+          },
+          "title": "pH",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "809504e0-7de1-5bd9-9322-b11f413c0428",
+              "dataKeys": [
+                {
+                  "name": "ph",
+                  "type": "timeseries",
+                  "label": "pH",
+                  "color": "#2e7d32",
+                  "settings": {},
+                  "units": "pH",
+                  "decimals": 2
+                }
+              ]
+            }
+          ],
+          "titleColor": "#1e293b"
+        }
+      },
+      "6e7486f3-5ce5-51a7-82ff-221464fcc47b": {
+        "id": "6e7486f3-5ce5-51a7-82ff-221464fcc47b",
+        "type": "latest",
+        "typeFullFqn": "system.analogue_gauges.radial_gauge_canvas_gauges",
+        "sizeX": 5,
+        "sizeY": 5,
+        "row": 5,
+        "col": 5,
+        "config": {
+          "showTitle": true,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "settings": {
+            "minValue": 0,
+            "maxValue": 800,
+            "startAngle": 45,
+            "ticksAngle": 270,
+            "showBorder": true,
+            "defaultColor": "#2e7d32",
+            "highlights": [
+              {
+                "from": 0,
+                "to": 5,
+                "color": "#2e7d32"
+              },
+              {
+                "from": 5,
+                "to": 50,
+                "color": "#fbc02d"
+              },
+              {
+                "from": 50,
+                "to": 200,
+                "color": "#f57c00"
+              },
+              {
+                "from": 200,
+                "to": 800,
+                "color": "#d32f2f"
+              }
+            ],
+            "highlightsWidth": 15,
+            "minorTicks": 10,
+            "valueInt": 1,
+            "valueBox": true,
+            "animation": true,
+            "animationDuration": 500,
+            "animationRule": "cycle",
+            "showUnitTitle": true,
+            "unitsFont": {
+              "family": "Roboto",
+              "size": 18,
+              "style": "normal",
+              "weight": "500"
+            }
+          },
+          "title": "Turbidity",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "809504e0-7de1-5bd9-9322-b11f413c0428",
+              "dataKeys": [
+                {
+                  "name": "turbidity_ntu",
+                  "type": "timeseries",
+                  "label": "Turbidity",
+                  "color": "#2e7d32",
+                  "settings": {},
+                  "units": "NTU",
+                  "decimals": 1
+                }
+              ]
+            }
+          ],
+          "titleColor": "#1e293b"
+        }
+      },
+      "428d13b2-a2cf-5cc5-b157-9b3c75f5ebd1": {
+        "id": "428d13b2-a2cf-5cc5-b157-9b3c75f5ebd1",
+        "type": "latest",
+        "typeFullFqn": "system.analogue_gauges.radial_gauge_canvas_gauges",
+        "sizeX": 5,
+        "sizeY": 5,
+        "row": 5,
+        "col": 10,
+        "config": {
+          "showTitle": true,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "settings": {
+            "minValue": 0,
+            "maxValue": 1200,
+            "startAngle": 45,
+            "ticksAngle": 270,
+            "showBorder": true,
+            "defaultColor": "#2e7d32",
+            "highlights": [
+              {
+                "from": 0,
+                "to": 500,
+                "color": "#2e7d32"
+              },
+              {
+                "from": 500,
+                "to": 1000,
+                "color": "#f57c00"
+              },
+              {
+                "from": 1000,
+                "to": 1200,
+                "color": "#d32f2f"
+              }
+            ],
+            "highlightsWidth": 15,
+            "minorTicks": 10,
+            "valueInt": 0,
+            "valueBox": true,
+            "animation": true,
+            "animationDuration": 500,
+            "animationRule": "cycle",
+            "showUnitTitle": true,
+            "unitsFont": {
+              "family": "Roboto",
+              "size": 18,
+              "style": "normal",
+              "weight": "500"
+            }
+          },
+          "title": "TDS",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "809504e0-7de1-5bd9-9322-b11f413c0428",
+              "dataKeys": [
+                {
+                  "name": "tds_ppm",
+                  "type": "timeseries",
+                  "label": "TDS",
+                  "color": "#2e7d32",
+                  "settings": {},
+                  "units": "ppm",
+                  "decimals": 0
+                }
+              ]
+            }
+          ],
+          "titleColor": "#1e293b"
+        }
+      },
+      "5db1b96b-4c61-5ed1-a2d6-c02b599e554c": {
+        "id": "5db1b96b-4c61-5ed1-a2d6-c02b599e554c",
+        "type": "latest",
+        "typeFullFqn": "system.analogue_gauges.radial_gauge_canvas_gauges",
+        "sizeX": 4,
+        "sizeY": 5,
+        "row": 5,
+        "col": 20,
+        "config": {
+          "showTitle": true,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "settings": {
+            "minValue": 10,
+            "maxValue": 30,
+            "startAngle": 45,
+            "ticksAngle": 270,
+            "showBorder": true,
+            "defaultColor": "#2e7d32",
+            "highlights": [],
+            "highlightsWidth": 15,
+            "minorTicks": 10,
+            "valueInt": 1,
+            "valueBox": true,
+            "animation": true,
+            "animationDuration": 500,
+            "animationRule": "cycle",
+            "showUnitTitle": true,
+            "unitsFont": {
+              "family": "Roboto",
+              "size": 18,
+              "style": "normal",
+              "weight": "500"
+            }
+          },
+          "title": "Water temperature",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "809504e0-7de1-5bd9-9322-b11f413c0428",
+              "dataKeys": [
+                {
+                  "name": "water_temp_c",
+                  "type": "timeseries",
+                  "label": "Water temperature",
+                  "color": "#2e7d32",
+                  "settings": {},
+                  "units": "°C",
+                  "decimals": 1
+                }
+              ]
+            }
+          ],
+          "titleColor": "#1e293b"
+        }
+      },
+      "528aac5a-03c8-50b5-a9bf-2f10dccf6409": {
+        "id": "528aac5a-03c8-50b5-a9bf-2f10dccf6409",
+        "type": "latest",
+        "typeFullFqn": "system.analogue_gauges.radial_gauge_canvas_gauges",
+        "sizeX": 5,
+        "sizeY": 5,
+        "row": 5,
+        "col": 15,
+        "config": {
+          "showTitle": true,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "settings": {
+            "minValue": 0,
+            "maxValue": 25,
+            "startAngle": 45,
+            "ticksAngle": 270,
+            "showBorder": true,
+            "defaultColor": "#2e7d32",
+            "highlights": [
+              {
+                "from": 0,
+                "to": 0.1,
+                "color": "#d32f2f"
+              },
+              {
+                "from": 0.1,
+                "to": 25,
+                "color": "#2e7d32"
+              }
+            ],
+            "highlightsWidth": 15,
+            "minorTicks": 10,
+            "valueInt": 1,
+            "valueBox": true,
+            "animation": true,
+            "animationDuration": 500,
+            "animationRule": "cycle",
+            "showUnitTitle": true,
+            "unitsFont": {
+              "family": "Roboto",
+              "size": 18,
+              "style": "normal",
+              "weight": "500"
+            }
+          },
+          "title": "Flow",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "809504e0-7de1-5bd9-9322-b11f413c0428",
+              "dataKeys": [
+                {
+                  "name": "flow_lpm",
+                  "type": "timeseries",
+                  "label": "Flow",
+                  "color": "#2e7d32",
+                  "settings": {},
+                  "units": "L/min",
+                  "decimals": 1
+                }
+              ]
+            }
+          ],
+          "titleColor": "#1e293b"
+        }
+      },
+      "17955f27-5736-5b34-bb50-7531be0fb564": {
+        "id": "17955f27-5736-5b34-bb50-7531be0fb564",
+        "type": "timeseries",
+        "typeFullFqn": "system.time_series_chart",
+        "sizeX": 12,
+        "sizeY": 9,
+        "row": 10,
+        "col": 0,
+        "config": {
+          "showTitle": true,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "settings": {
+            "showLegend": true,
+            "legendConfig": {
+              "direction": "column",
+              "position": "top",
+              "showAvg": true,
+              "showMin": false,
+              "showMax": true,
+              "sortDataKeys": false
+            },
+            "thresholds": [],
+            "dataZoom": true,
+            "yAxis": {
+              "show": true,
+              "label": "Value",
+              "position": "left",
+              "labelColor": "#b9c8dc",
+              "tickLabelColor": "#9fb3cc",
+              "ticksColor": "#2d4668",
+              "lineColor": "#2d4668",
+              "splitLinesColor": "#263751",
+              "showSplitLines": true
+            },
+            "xAxis": {
+              "show": true,
+              "label": "Time",
+              "tickLabelColor": "#9fb3cc",
+              "ticksColor": "#2d4668",
+              "lineColor": "#2d4668"
+            },
+            "showTooltip": true
+          },
+          "title": "Turbidity / pH / TDS trend",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n\ntable.tb-legend { color: #475569 !important; font-size: 12px !important; }\ntable.tb-legend .tb-legend-header th, table.tb-legend .tb-legend-type {\n  color: #1e293b !important; font-weight: 700 !important;\n}\ntable.tb-legend .tb-legend-label, table.tb-legend .tb-legend-value {\n  color: #475569 !important;\n}\n.tb-legend-line { opacity: 1 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "809504e0-7de1-5bd9-9322-b11f413c0428",
+              "dataKeys": [
+                {
+                  "name": "turbidity_ntu",
+                  "type": "timeseries",
+                  "label": "Turbidity (NTU)",
+                  "color": "#ffc107",
+                  "settings": {},
+                  "decimals": 1
+                },
+                {
+                  "name": "ph",
+                  "type": "timeseries",
+                  "label": "pH",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "decimals": 2
+                },
+                {
+                  "name": "tds_ppm",
+                  "type": "timeseries",
+                  "label": "TDS (ppm)",
+                  "color": "#9c27b0",
+                  "settings": {},
+                  "decimals": 0
+                }
+              ]
+            }
+          ],
+          "useDashboardTimewindow": true,
+          "titleColor": "#1e293b"
+        }
+      },
+      "870e5076-7858-51ca-b16d-67975257dc81": {
+        "id": "870e5076-7858-51ca-b16d-67975257dc81",
+        "type": "timeseries",
+        "typeFullFqn": "system.time_series_chart",
+        "sizeX": 12,
+        "sizeY": 9,
+        "row": 10,
+        "col": 12,
+        "config": {
+          "showTitle": true,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "settings": {
+            "showLegend": true,
+            "legendConfig": {
+              "direction": "column",
+              "position": "top",
+              "showAvg": true,
+              "showMin": false,
+              "showMax": true,
+              "sortDataKeys": false
+            },
+            "thresholds": [],
+            "dataZoom": true,
+            "yAxis": {
+              "show": true,
+              "label": "Value",
+              "position": "left",
+              "labelColor": "#b9c8dc",
+              "tickLabelColor": "#9fb3cc",
+              "ticksColor": "#2d4668",
+              "lineColor": "#2d4668",
+              "splitLinesColor": "#263751",
+              "showSplitLines": true
+            },
+            "xAxis": {
+              "show": true,
+              "label": "Time",
+              "tickLabelColor": "#9fb3cc",
+              "ticksColor": "#2d4668",
+              "lineColor": "#2d4668"
+            },
+            "showTooltip": true
+          },
+          "title": "Temperature and flow trend",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n\ntable.tb-legend { color: #475569 !important; font-size: 12px !important; }\ntable.tb-legend .tb-legend-header th, table.tb-legend .tb-legend-type {\n  color: #1e293b !important; font-weight: 700 !important;\n}\ntable.tb-legend .tb-legend-label, table.tb-legend .tb-legend-value {\n  color: #475569 !important;\n}\n.tb-legend-line { opacity: 1 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "809504e0-7de1-5bd9-9322-b11f413c0428",
+              "dataKeys": [
+                {
+                  "name": "water_temp_c",
+                  "type": "timeseries",
+                  "label": "Water temp (°C)",
+                  "color": "#00bcd4",
+                  "settings": {},
+                  "decimals": 1
+                },
+                {
+                  "name": "flow_lpm",
+                  "type": "timeseries",
+                  "label": "Flow (L/min)",
+                  "color": "#4caf50",
+                  "settings": {},
+                  "decimals": 1
+                }
+              ]
+            }
+          ],
+          "useDashboardTimewindow": true,
+          "titleColor": "#1e293b"
+        }
+      },
+      "5f2f753e-40e4-5e26-b73e-2f779ad151db": {
+        "id": "5f2f753e-40e4-5e26-b73e-2f779ad151db",
+        "type": "alarm",
+        "typeFullFqn": "system.alarm_widgets.alarms_table",
+        "sizeX": 24,
+        "sizeY": 10,
+        "row": 19,
+        "col": 0,
+        "config": {
+          "showTitle": true,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "settings": {
+            "enableSelection": true,
+            "enableSearch": true,
+            "displayDetails": true,
+            "displayActivity": true,
+            "allowAcknowledgment": true,
+            "allowClear": true,
+            "allowAssign": true,
+            "displayPagination": true,
+            "defaultPageSize": 10,
+            "defaultSortOrder": "-createdTime",
+            "enableFilter": true,
+            "enableSelectColumnDisplay": true,
+            "alarmsTitle": "Active and cleared alarms — last 24h",
+            "noDataDisplayMessage": "No active or cleared alarms in this time window."
+          },
+          "title": "Alarms for this node — last 24h",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "timewindow": {
+            "realtime": {
+              "interval": 1000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 200
+            }
+          },
+          "useDashboardTimewindow": false,
+          "displayTimewindow": true,
+          "alarmSource": {
+            "type": "entity",
+            "name": "alarms",
+            "entityAliasId": "809504e0-7de1-5bd9-9322-b11f413c0428",
+            "filterId": null,
+            "dataKeys": [
+              {
+                "name": "createdTime",
+                "type": "alarm",
+                "label": "Created",
+                "color": "#2196f3",
+                "settings": {}
+              },
+              {
+                "name": "originator",
+                "type": "alarm",
+                "label": "Device",
+                "color": "#4caf50",
+                "settings": {}
+              },
+              {
+                "name": "type",
+                "type": "alarm",
+                "label": "Alarm",
+                "color": "#f44336",
+                "settings": {}
+              },
+              {
+                "name": "severity",
+                "type": "alarm",
+                "label": "Severity",
+                "color": "#ffc107",
+                "settings": {}
+              },
+              {
+                "name": "status",
+                "type": "alarm",
+                "label": "Status",
+                "color": "#607d8b",
+                "settings": {}
+              },
+              {
+                "name": "startTime",
+                "type": "alarm",
+                "label": "Duration",
+                "color": "#9c27b0",
+                "settings": {
+                  "columnWidth": "90px",
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": true,
+                  "cellContentFunction": "var start = alarm.startTs || value;\nvar end = alarm.cleared && alarm.endTs ? alarm.endTs : Date.now();\nvar seconds = Math.max(0, Math.floor((end - start) / 1000));\nvar hours = Math.floor(seconds / 3600);\nvar minutes = Math.floor((seconds % 3600) / 60);\nvar secs = seconds % 60;\nreturn (hours ? hours + 'h ' : '') + (minutes ? minutes + 'm ' : '') + secs + 's';"
+                }
+              }
+            ]
+          },
+          "alarmFilterConfig": {
+            "statusList": [
+              "ACTIVE",
+              "CLEARED"
+            ],
+            "severityList": [],
+            "typeList": [],
+            "searchPropagatedAlarms": true,
+            "assignedToCurrentUser": false,
+            "assigneeId": null
+          },
+          "alarmsPollingInterval": 5,
+          "datasources": [],
+          "titleColor": "#1e293b"
+        },
+        "mobileOrder": 1012
+      },
+      "b84552ed-db82-a95b-1af1-6489b8641e98": {
+        "typeFullFqn": "system.map",
+        "type": "latest",
+        "sizeX": 12,
+        "sizeY": 8,
+        "config": {
+          "datasources": [],
+          "showTitle": true,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "0px",
+          "settings": {
+            "mapType": "geoMap",
+            "layers": [
+              {
+                "label": "{i18n:widgets.maps.layer.roadmap}",
+                "provider": "openfreemap",
+                "layerType": "bright"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.satellite}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.hybrid}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery",
+                "referenceLayer": "openstreetmap_hybrid"
+              }
+            ],
+            "imageSource": null,
+            "markers": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "4362b944-40bc-5596-be72-bc3fa7b4a344",
+                "dsFilterId": null,
+                "additionalDataSources": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "operational_state",
+                    "type": "timeseries",
+                    "label": "operational_state",
+                    "color": "#2196f3",
+                    "settings": {}
+                  },
+                  {
+                    "name": "turbidity_ntu",
+                    "type": "timeseries",
+                    "label": "turbidity_ntu",
+                    "color": "#2196f3",
+                    "settings": {}
+                  },
+                  {
+                    "name": "water_point",
+                    "type": "timeseries",
+                    "label": "water_point",
+                    "color": "#2196f3",
+                    "settings": {}
+                  },
+                  {
+                    "name": "node_id",
+                    "type": "timeseries",
+                    "label": "node_id",
+                    "color": "#2196f3",
+                    "settings": {}
+                  },
+                  {
+                    "name": "ph",
+                    "type": "timeseries",
+                    "label": "pH",
+                    "color": "#2196f3",
+                    "settings": {}
+                  },
+                  {
+                    "name": "tds_ppm",
+                    "type": "timeseries",
+                    "label": "TDS (ppm)",
+                    "color": "#2196f3",
+                    "settings": {}
+                  },
+                  {
+                    "name": "flow_lpm",
+                    "type": "timeseries",
+                    "label": "Flow (L/min)",
+                    "color": "#2196f3",
+                    "settings": {}
+                  },
+                  {
+                    "name": "ts",
+                    "type": "timeseries",
+                    "label": "Telemetry time",
+                    "color": "#2196f3",
+                    "settings": {}
+                  },
+                  {
+                    "name": "lastActivityTime",
+                    "type": "attribute",
+                    "label": "Device last activity",
+                    "color": "#2196f3",
+                    "settings": {}
+                  }
+                ],
+                "label": {
+                  "show": true,
+                  "type": "pattern",
+                  "pattern": "<div style='position:relative;white-space:nowrap;text-align:center;font-size:11px;top:-6px;'><span style='background:#ffffff;color:#1e293b;border:1px solid #e2e8f0;border-radius:10px;padding:3px 8px;font-weight:700;letter-spacing:.5px;'>${node_id}</span></div>",
+                  "patternFunction": null
+                },
+                "tooltip": {
+                  "show": true,
+                  "type": "function",
+                  "pattern": "${entityName}<br/>${operational_state}",
+                  "patternFunction": "\nvar state = data.operational_state ? String(data.operational_state) : 'Unknown';\nvar colors = {\n  'Normal': '#2e7d32',\n  'Watch': '#fbc02d',\n  'Investigate': '#f57c00',\n  'Intervention': '#d32f2f'\n};\nvar stateColor = colors[state] || '#64748b';\nvar stateText = (state === 'Watch' || state === 'Investigate') ? '#1e293b' : '#ffffff';\nvar num = function (value, digits) {\n  var parsed = Number(value);\n  return Number.isFinite(parsed) ? parsed.toFixed(digits) : '\\u2014';\n};\nvar time = function (value) {\n  var parsed = Number(value);\n  if (!Number.isFinite(parsed) || parsed <= 0) return '\\u2014';\n  return new Date(parsed).toLocaleString();\n};\nvar name = data.water_point || data.entityName || 'Water point';\nvar node = data.node_id || data.entityName || '';\nreturn '<div style=\"min-width:232px;box-sizing:border-box;background:#ffffff;'\n  + 'border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;'\n  + 'color:#1e293b;font-family:Roboto,Arial,sans-serif;box-shadow:0 8px 24px rgba(15,23,42,.12)\">'\n  + '<div style=\"font-size:15px;font-weight:700;line-height:1.3\">' + name + '</div>'\n  + '<div style=\"color:#2563eb;font-size:11px;letter-spacing:.8px;margin-top:2px\">' + node + '</div>'\n  + '<div style=\"margin:10px 0\"><span style=\"display:inline-block;background:' + stateColor\n  + ';color:' + stateText + ';padding:4px 10px;border-radius:10px;font-size:11px;font-weight:700\">' + state + '</span></div>'\n  + '<div style=\"display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:12px\">'\n  + '<span style=\"color:#64748b\">Turbidity</span><b>' + num(data.turbidity_ntu, 1) + ' NTU</b>'\n  + '<span style=\"color:#64748b\">pH</span><b>' + num(data.ph, 2) + '</b>'\n  + '<span style=\"color:#64748b\">TDS</span><b>' + num(data.tds_ppm, 0) + ' ppm</b>'\n  + '<span style=\"color:#64748b\">Flow</span><b>' + num(data.flow_lpm, 1) + ' L/min</b>'\n  + '</div>'\n  + '<div style=\"border-top:1px solid #e2e8f0;margin-top:10px;padding-top:8px;'\n  + 'font-size:11px;color:#64748b\">Telemetry: ' + time(data.ts)\n  + '<br/>Device last activity: ' + time(data.lastActivityTime) + '</div>'\n  + '<div style=\"margin-top:8px;font-size:11px;color:#2563eb\">Click marker for full node detail \\u2192</div>'\n  + '</div>';\n",
+                  "trigger": "click",
+                  "autoclose": true,
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "tagActions": null
+                },
+                "click": {
+                  "type": "updateDashboardState",
+                  "targetDashboardStateId": "node_detail",
+                  "setEntityId": true,
+                  "stateEntityParamName": null,
+                  "openRightLayout": false,
+                  "openInSeparateDialog": false,
+                  "openInPopover": false
+                },
+                "groups": null,
+                "edit": {
+                  "enabledActions": [],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "latitude",
+                  "label": "latitude",
+                  "type": "timeseries",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "longitude",
+                  "label": "longitude",
+                  "type": "timeseries",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "shape",
+                "markerShape": {
+                  "size": 34,
+                  "color": {
+                    "type": "function",
+                    "color": "#307FE5",
+                    "rangeKey": null,
+                    "range": null,
+                    "colorFunction": "var state = data.operational_state;\nif (state == 'Intervention') return '#d32f2f';\nif (state == 'Investigate') return '#f57c00';\nif (state == 'Watch') return '#fbc02d';\nif (state == 'Normal') return '#2e7d32';\nreturn '#9e9e9e';"
+                  },
+                  "shape": "markerShape1"
+                },
+                "markerIcon": {
+                  "iconContainer": "iconContainer1",
+                  "icon": "mdi:lightbulb-on",
+                  "size": 48,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerImage": {
+                  "type": "image",
+                  "image": "https://static.thingsboard.cloud/assets/markers/shape1.svg",
+                  "imageSize": 34
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "markerClustering": {
+                  "enable": false,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 80,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": false,
+                  "clusterMarkerColorFunction": null
+                }
+              }
+            ],
+            "polygons": [],
+            "circles": [],
+            "polylines": [],
+            "additionalDataSources": [],
+            "controlsPosition": "topleft",
+            "zoomActions": [
+              "scroll",
+              "doubleClick",
+              "controlButtons"
+            ],
+            "useGestureHandling": false,
+            "scales": [],
+            "dragModeButton": false,
+            "fitMapBounds": true,
+            "useDefaultCenterPosition": false,
+            "defaultCenterPosition": "27.709,85.352",
+            "defaultZoomLevel": null,
+            "mapPageSize": 16384,
+            "mapActionButtons": [],
+            "background": {
+              "type": "color",
+              "color": "#ffffff",
+              "overlay": {
+                "enabled": false,
+                "color": "rgba(255,255,255,0.72)",
+                "blur": 3
+              }
+            },
+            "padding": "8px"
+          },
+          "title": "Water-point map — live state",
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "widgetStyle": {},
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n\n.leaflet-tooltip, .leaflet-popup-content-wrapper {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border: 1px solid #e2e8f0 !important;\n  box-shadow: 0 8px 24px rgba(15, 23, 42, .12) !important;\n  border-radius: 12px !important;\n}\n.leaflet-tooltip-top:before, .leaflet-tooltip-bottom:before { display: none !important; }\n",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": "#1e293b",
+          "margin": "0px",
+          "borderRadius": "0px",
+          "iconSize": "24px",
+          "titleIcon": "map",
+          "iconColor": "#1F6BDD",
+          "actions": {},
+          "enableDataExport": false
+        },
+        "row": 6,
+        "col": 0,
+        "id": "b84552ed-db82-a95b-1af1-6489b8641e98"
+      },
+      "d490b168-9871-5d9f-a3a2-c1b17edadfa0": {
+        "id": "d490b168-9871-5d9f-a3a2-c1b17edadfa0",
+        "type": "latest",
+        "typeFullFqn": "system.cards.html_value_card",
+        "sizeX": 6,
+        "sizeY": 3,
+        "row": 0,
+        "col": 0,
+        "config": {
+          "showTitle": false,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "title": "",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "entityCount",
+              "name": "",
+              "entityAliasId": "4362b944-40bc-5596-be72-bc3fa7b4a344",
+              "filterId": "16d256f7-6c11-520d-ad98-3f0c5cb6cc86",
+              "dataKeys": [
+                {
+                  "name": "count",
+                  "type": "count",
+                  "label": "normalCount",
+                  "color": "#2e7d32",
+                  "settings": {},
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            }
+          ],
+          "settings": {
+            "cardHtml": "<div class='kpi' style='--accent:#15803d;--fg:#ffffff;--sub:rgba(255,255,255,.82);--border:#166534'>\n  <div class='kpi-top'><span class='dot'></span>NORMAL</div>\n  <div class='kpi-value'>${normalCount:0}</div>\n  <div class='kpi-sub'>water points</div>\n</div>",
+            "cardCss": "\n.kpi {\n  width: 100%; height: 100%; box-sizing: border-box;\n  background: var(--accent);\n  border: 1px solid var(--border);\n  border-radius: 14px;\n  padding: 10px 16px;\n  display: flex; flex-direction: column; justify-content: space-between;\n  overflow: hidden;\n  box-shadow: 0 6px 18px rgba(15, 23, 42, .10);\n}\n.kpi-top {\n  color: var(--fg); font-size: 11px; font-weight: 700;\n  letter-spacing: 1.3px; display: flex; align-items: center;\n  gap: 8px; white-space: nowrap; opacity: .92;\n}\n.dot {\n  width: 8px; height: 8px; border-radius: 50%;\n  background: var(--border); box-shadow: none; flex-shrink: 0;\n}\n.kpi-value {\n  color: var(--fg); font-size: clamp(26px, 4.5vh, 42px);\n  font-weight: 700; line-height: 1; letter-spacing: -1.5px; margin: 2px 0;\n}\n.kpi-sub { color: var(--sub); font-size: 11px; line-height: 1.1; font-weight: 600; }\n"
+          },
+          "showLegend": false,
+          "enableDataExport": false,
+          "titleColor": "#1e293b"
+        }
+      },
+      "b32ef427-fb55-5316-af0b-23bcc32bc585": {
+        "id": "b32ef427-fb55-5316-af0b-23bcc32bc585",
+        "type": "latest",
+        "typeFullFqn": "system.cards.html_value_card",
+        "sizeX": 6,
+        "sizeY": 3,
+        "row": 0,
+        "col": 6,
+        "config": {
+          "showTitle": false,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "title": "",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "entityCount",
+              "name": "",
+              "entityAliasId": "4362b944-40bc-5596-be72-bc3fa7b4a344",
+              "filterId": "643babf7-819b-5238-bb08-8fda8fcb76bf",
+              "dataKeys": [
+                {
+                  "name": "count",
+                  "type": "count",
+                  "label": "watchCount",
+                  "color": "#fbc02d",
+                  "settings": {},
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            }
+          ],
+          "settings": {
+            "cardHtml": "<div class='kpi' style='--accent:#fef08a;--fg:#713f12;--sub:#854d0e;--border:#eab308'>\n  <div class='kpi-top'><span class='dot'></span>WATCH</div>\n  <div class='kpi-value'>${watchCount:0}</div>\n  <div class='kpi-sub'>water points</div>\n</div>",
+            "cardCss": "\n.kpi {\n  width: 100%; height: 100%; box-sizing: border-box;\n  background: var(--accent);\n  border: 1px solid var(--border);\n  border-radius: 14px;\n  padding: 10px 16px;\n  display: flex; flex-direction: column; justify-content: space-between;\n  overflow: hidden;\n  box-shadow: 0 6px 18px rgba(15, 23, 42, .10);\n}\n.kpi-top {\n  color: var(--fg); font-size: 11px; font-weight: 700;\n  letter-spacing: 1.3px; display: flex; align-items: center;\n  gap: 8px; white-space: nowrap; opacity: .92;\n}\n.dot {\n  width: 8px; height: 8px; border-radius: 50%;\n  background: var(--border); box-shadow: none; flex-shrink: 0;\n}\n.kpi-value {\n  color: var(--fg); font-size: clamp(26px, 4.5vh, 42px);\n  font-weight: 700; line-height: 1; letter-spacing: -1.5px; margin: 2px 0;\n}\n.kpi-sub { color: var(--sub); font-size: 11px; line-height: 1.1; font-weight: 600; }\n"
+          },
+          "showLegend": false,
+          "enableDataExport": false,
+          "titleColor": "#1e293b"
+        }
+      },
+      "b92f891c-3192-5713-a9ad-12b34d02d2f4": {
+        "id": "b92f891c-3192-5713-a9ad-12b34d02d2f4",
+        "type": "latest",
+        "typeFullFqn": "system.cards.html_value_card",
+        "sizeX": 6,
+        "sizeY": 3,
+        "row": 3,
+        "col": 0,
+        "config": {
+          "showTitle": false,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "title": "",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "entityCount",
+              "name": "",
+              "entityAliasId": "4362b944-40bc-5596-be72-bc3fa7b4a344",
+              "filterId": "98028f50-04a2-5075-a4c2-121f4e2d3959",
+              "dataKeys": [
+                {
+                  "name": "count",
+                  "type": "count",
+                  "label": "investigateCount",
+                  "color": "#f57c00",
+                  "settings": {},
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            }
+          ],
+          "settings": {
+            "cardHtml": "<div class='kpi' style='--accent:#ffedd5;--fg:#7c2d12;--sub:#9a3412;--border:#f97316'>\n  <div class='kpi-top'><span class='dot'></span>INVESTIGATE</div>\n  <div class='kpi-value'>${investigateCount:0}</div>\n  <div class='kpi-sub'>water points</div>\n</div>",
+            "cardCss": "\n.kpi {\n  width: 100%; height: 100%; box-sizing: border-box;\n  background: var(--accent);\n  border: 1px solid var(--border);\n  border-radius: 14px;\n  padding: 10px 16px;\n  display: flex; flex-direction: column; justify-content: space-between;\n  overflow: hidden;\n  box-shadow: 0 6px 18px rgba(15, 23, 42, .10);\n}\n.kpi-top {\n  color: var(--fg); font-size: 11px; font-weight: 700;\n  letter-spacing: 1.3px; display: flex; align-items: center;\n  gap: 8px; white-space: nowrap; opacity: .92;\n}\n.dot {\n  width: 8px; height: 8px; border-radius: 50%;\n  background: var(--border); box-shadow: none; flex-shrink: 0;\n}\n.kpi-value {\n  color: var(--fg); font-size: clamp(26px, 4.5vh, 42px);\n  font-weight: 700; line-height: 1; letter-spacing: -1.5px; margin: 2px 0;\n}\n.kpi-sub { color: var(--sub); font-size: 11px; line-height: 1.1; font-weight: 600; }\n"
+          },
+          "showLegend": false,
+          "enableDataExport": false,
+          "titleColor": "#1e293b"
+        }
+      },
+      "12165aa1-4582-5913-a51b-c6f83596282f": {
+        "id": "12165aa1-4582-5913-a51b-c6f83596282f",
+        "type": "latest",
+        "typeFullFqn": "system.cards.html_value_card",
+        "sizeX": 6,
+        "sizeY": 3,
+        "row": 3,
+        "col": 6,
+        "config": {
+          "showTitle": false,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "title": "",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "entityCount",
+              "name": "",
+              "entityAliasId": "4362b944-40bc-5596-be72-bc3fa7b4a344",
+              "filterId": "a0e43e82-2227-5caf-b140-5865c011adba",
+              "dataKeys": [
+                {
+                  "name": "count",
+                  "type": "count",
+                  "label": "interventionCount",
+                  "color": "#d32f2f",
+                  "settings": {},
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            }
+          ],
+          "settings": {
+            "cardHtml": "<div class='kpi' style='--accent:#dc2626;--fg:#ffffff;--sub:rgba(255,255,255,.86);--border:#b91c1c'>\n  <div class='kpi-top'><span class='dot'></span>INTERVENTION</div>\n  <div class='kpi-value'>${interventionCount:0}</div>\n  <div class='kpi-sub'>water points</div>\n</div>",
+            "cardCss": "\n.kpi {\n  width: 100%; height: 100%; box-sizing: border-box;\n  background: var(--accent);\n  border: 1px solid var(--border);\n  border-radius: 14px;\n  padding: 10px 16px;\n  display: flex; flex-direction: column; justify-content: space-between;\n  overflow: hidden;\n  box-shadow: 0 6px 18px rgba(15, 23, 42, .10);\n}\n.kpi-top {\n  color: var(--fg); font-size: 11px; font-weight: 700;\n  letter-spacing: 1.3px; display: flex; align-items: center;\n  gap: 8px; white-space: nowrap; opacity: .92;\n}\n.dot {\n  width: 8px; height: 8px; border-radius: 50%;\n  background: var(--border); box-shadow: none; flex-shrink: 0;\n}\n.kpi-value {\n  color: var(--fg); font-size: clamp(26px, 4.5vh, 42px);\n  font-weight: 700; line-height: 1; letter-spacing: -1.5px; margin: 2px 0;\n}\n.kpi-sub { color: var(--sub); font-size: 11px; line-height: 1.1; font-weight: 600; }\n"
+          },
+          "showLegend": false,
+          "enableDataExport": false,
+          "titleColor": "#1e293b"
+        }
+      },
+      "f20b5576-6233-564c-8d0c-2326f3d57cd7": {
+        "id": "f20b5576-6233-564c-8d0c-2326f3d57cd7",
+        "type": "latest",
+        "typeFullFqn": "system.alarm_count",
+        "sizeX": 12,
+        "sizeY": 2,
+        "row": 0,
+        "col": 12,
+        "config": {
+          "showTitle": false,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "title": "",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "alarmCount",
+              "name": "",
+              "entityAliasId": "4362b944-40bc-5596-be72-bc3fa7b4a344",
+              "dataKeys": [
+                {
+                  "name": "count",
+                  "type": "count",
+                  "label": "count",
+                  "settings": {}
+                }
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ],
+                "severityList": [
+                  "CRITICAL"
+                ],
+                "assignedToCurrentUser": false,
+                "assigneeId": null
+              }
+            }
+          ],
+          "settings": {
+            "showLabel": true,
+            "label": "Critical active",
+            "labelFont": {
+              "size": 12,
+              "sizeUnit": "px",
+              "family": "Roboto",
+              "weight": "600",
+              "style": "normal",
+              "lineHeight": "16px"
+            },
+            "labelColor": {
+              "type": "constant",
+              "color": "#475569"
+            },
+            "showIcon": true,
+            "iconSize": 18,
+            "iconSizeUnit": "px",
+            "icon": "warning",
+            "iconColor": {
+              "type": "constant",
+              "color": "#ffffff"
+            },
+            "showIconBackground": true,
+            "iconBackgroundSize": 34,
+            "iconBackgroundSizeUnit": "px",
+            "iconBackgroundColor": {
+              "type": "constant",
+              "color": "#dc2626"
+            },
+            "valueFont": {
+              "size": 28,
+              "sizeUnit": "px",
+              "family": "Roboto",
+              "weight": "700",
+              "style": "normal",
+              "lineHeight": "30px"
+            },
+            "valueColor": {
+              "type": "constant",
+              "color": "#b91c1c"
+            },
+            "showChevron": false,
+            "layout": "row",
+            "autoScale": true
+          },
+          "configMode": "basic",
+          "borderRadius": "14px",
+          "titleColor": "#1e293b"
+        }
+      },
+      "6d1c28c7-9d6b-50a0-a9fa-984608221709": {
+        "id": "6d1c28c7-9d6b-50a0-a9fa-984608221709",
+        "type": "latest",
+        "typeFullFqn": "system.alarm_count",
+        "sizeX": 12,
+        "sizeY": 2,
+        "row": 2,
+        "col": 12,
+        "config": {
+          "showTitle": false,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "title": "",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "alarmCount",
+              "name": "",
+              "entityAliasId": "4362b944-40bc-5596-be72-bc3fa7b4a344",
+              "dataKeys": [
+                {
+                  "name": "count",
+                  "type": "count",
+                  "label": "count",
+                  "settings": {}
+                }
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ],
+                "severityList": [
+                  "MAJOR"
+                ],
+                "assignedToCurrentUser": false,
+                "assigneeId": null
+              }
+            }
+          ],
+          "settings": {
+            "showLabel": true,
+            "label": "Major active",
+            "labelFont": {
+              "size": 12,
+              "sizeUnit": "px",
+              "family": "Roboto",
+              "weight": "600",
+              "style": "normal",
+              "lineHeight": "16px"
+            },
+            "labelColor": {
+              "type": "constant",
+              "color": "#475569"
+            },
+            "showIcon": true,
+            "iconSize": 18,
+            "iconSizeUnit": "px",
+            "icon": "warning",
+            "iconColor": {
+              "type": "constant",
+              "color": "#ffffff"
+            },
+            "showIconBackground": true,
+            "iconBackgroundSize": 34,
+            "iconBackgroundSizeUnit": "px",
+            "iconBackgroundColor": {
+              "type": "constant",
+              "color": "#ea580c"
+            },
+            "valueFont": {
+              "size": 28,
+              "sizeUnit": "px",
+              "family": "Roboto",
+              "weight": "700",
+              "style": "normal",
+              "lineHeight": "30px"
+            },
+            "valueColor": {
+              "type": "constant",
+              "color": "#c2410c"
+            },
+            "showChevron": false,
+            "layout": "row",
+            "autoScale": true
+          },
+          "configMode": "basic",
+          "borderRadius": "14px",
+          "titleColor": "#1e293b"
+        }
+      },
+      "02e07beb-f0d7-5359-8401-37bf179f1770": {
+        "id": "02e07beb-f0d7-5359-8401-37bf179f1770",
+        "type": "latest",
+        "typeFullFqn": "system.alarm_count",
+        "sizeX": 12,
+        "sizeY": 2,
+        "row": 4,
+        "col": 12,
+        "config": {
+          "showTitle": false,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "title": "",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "alarmCount",
+              "name": "",
+              "entityAliasId": "4362b944-40bc-5596-be72-bc3fa7b4a344",
+              "dataKeys": [
+                {
+                  "name": "count",
+                  "type": "count",
+                  "label": "count",
+                  "settings": {}
+                }
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ],
+                "severityList": [
+                  "WARNING"
+                ],
+                "assignedToCurrentUser": false,
+                "assigneeId": null
+              }
+            }
+          ],
+          "settings": {
+            "showLabel": true,
+            "label": "Warning active",
+            "labelFont": {
+              "size": 12,
+              "sizeUnit": "px",
+              "family": "Roboto",
+              "weight": "600",
+              "style": "normal",
+              "lineHeight": "16px"
+            },
+            "labelColor": {
+              "type": "constant",
+              "color": "#475569"
+            },
+            "showIcon": true,
+            "iconSize": 18,
+            "iconSizeUnit": "px",
+            "icon": "warning",
+            "iconColor": {
+              "type": "constant",
+              "color": "#ffffff"
+            },
+            "showIconBackground": true,
+            "iconBackgroundSize": 34,
+            "iconBackgroundSizeUnit": "px",
+            "iconBackgroundColor": {
+              "type": "constant",
+              "color": "#ca8a04"
+            },
+            "valueFont": {
+              "size": 28,
+              "sizeUnit": "px",
+              "family": "Roboto",
+              "weight": "700",
+              "style": "normal",
+              "lineHeight": "30px"
+            },
+            "valueColor": {
+              "type": "constant",
+              "color": "#a16207"
+            },
+            "showChevron": false,
+            "layout": "row",
+            "autoScale": true
+          },
+          "configMode": "basic",
+          "borderRadius": "14px",
+          "titleColor": "#1e293b"
+        }
+      },
+      "34c26972-c3fa-5966-9c6e-136477766807": {
+        "id": "34c26972-c3fa-5966-9c6e-136477766807",
+        "type": "latest",
+        "typeFullFqn": "system.cards.entities_table",
+        "sizeX": 12,
+        "sizeY": 8,
+        "row": 6,
+        "col": 12,
+        "config": {
+          "showTitle": true,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "title": "Needs attention — highest priority first",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {
+            "rowClick": [
+              {
+                "name": "Open node detail",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "node_detail",
+                "setEntityId": true
+              }
+            ]
+          },
+          "settings": {
+            "entitiesTitle": "Needs attention",
+            "enableSearch": false,
+            "enableSelectColumnDisplay": false,
+            "enableStickyHeader": true,
+            "displayEntityName": true,
+            "displayEntityType": false,
+            "displayPagination": false,
+            "defaultPageSize": 5,
+            "defaultSortOrder": "-operational_state",
+            "entityNameColumnTitle": "Water point",
+            "noDataDisplayMessage": "No water points need attention."
+          },
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "4362b944-40bc-5596-be72-bc3fa7b4a344",
+              "filterId": "3b95d544-636f-528d-960a-d6b3b0b52d7c",
+              "dataKeys": [
+                {
+                  "name": "operational_state",
+                  "type": "timeseries",
+                  "label": "State",
+                  "color": "#d32f2f",
+                  "settings": {
+                    "columnWidth": "92px",
+                    "useCellStyleFunction": true,
+                    "cellStyleFunction": "if (value == 'Intervention') return '#d32f2f';\nif (value == 'Investigate') return '#f57c00';\nreturn '#9fb3cc';",
+                    "useCellContentFunction": true,
+                    "cellContentFunction": "var c = value == 'Intervention' ? '#d32f2f' : '#f57c00';\nreturn '<span style=\"background:' + c + ';color:#fff;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700\">' + value + '</span>';"
+                  }
+                },
+                {
+                  "name": "turbidity_ntu",
+                  "type": "timeseries",
+                  "label": "NTU",
+                  "color": "#fbc02d",
+                  "settings": {
+                    "columnWidth": "58px"
+                  },
+                  "decimals": 1
+                },
+                {
+                  "name": "ph",
+                  "type": "timeseries",
+                  "label": "pH",
+                  "color": "#42a5f5",
+                  "settings": {
+                    "columnWidth": "50px"
+                  },
+                  "decimals": 2
+                },
+                {
+                  "name": "tds_ppm",
+                  "type": "timeseries",
+                  "label": "TDS",
+                  "color": "#ab47bc",
+                  "settings": {
+                    "columnWidth": "58px"
+                  },
+                  "decimals": 0
+                },
+                {
+                  "name": "flow_lpm",
+                  "type": "timeseries",
+                  "label": "Flow",
+                  "color": "#26c6da",
+                  "settings": {
+                    "columnWidth": "58px"
+                  },
+                  "decimals": 1
+                }
+              ]
+            }
+          ],
+          "titleColor": "#1e293b"
+        }
+      },
+      "38d2bcd4-b392-5007-8b61-bd9e280d9779": {
+        "id": "38d2bcd4-b392-5007-8b61-bd9e280d9779",
+        "type": "latest",
+        "typeFullFqn": "system.cards.markdown_card",
+        "sizeX": 24,
+        "sizeY": 2,
+        "row": 14,
+        "col": 0,
+        "config": {
+          "showTitle": false,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "title": "",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "datasources": [],
+          "settings": {
+            "useMarkdownTextFunction": false,
+            "markdownTextPattern": "<div class='scope'>\n  <div class='scope-title'>DISTRICT & SHARED-SOURCE CONTEXT</div>\n  <div class='scope-body'><b>Scope: All Districts.</b> Each monitored water point is shown independently; an abnormal reading affects only that water point. No shared-source or contamination-propagation links are asserted. District filters (Kathmandu, Bhaktapur, Bidur/Nuwakot) and separate source/branch status need confirmed district and source IDs in the project data, so they are documented as a future enhancement rather than invented here.</div>\n</div>",
+            "applyDefaultMarkdownStyle": false,
+            "markdownCss": "\n.scope{width:100%;height:100%;box-sizing:border-box;background:#ffffff;border:1px solid #e2e8f0;\n  border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;justify-content:center}\n.scope-title{color:#2563eb;font-size:12px;font-weight:700;letter-spacing:1.3px;margin-bottom:6px}\n.scope-body{color:#475569;font-size:12px;line-height:1.5}\n.scope-body b{color:#1e293b}\n"
+          },
+          "enableDataExport": false,
+          "titleColor": "#1e293b"
+        }
+      },
+      "fcecdc79-2560-586a-abdf-fdce9490c0ad": {
+        "id": "fcecdc79-2560-586a-abdf-fdce9490c0ad",
+        "type": "latest",
+        "typeFullFqn": "system.cards.markdown_card",
+        "sizeX": 15,
+        "sizeY": 5,
+        "row": 0,
+        "col": 9,
+        "config": {
+          "showTitle": true,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "padding": "8px",
+          "settings": {
+            "useMarkdownTextFunction": true,
+            "markdownTextPattern": "<div class='meta-card'><div class='meta-empty'>Click a map marker to inspect a water point.</div></div>",
+            "markdownTextFunction": "\nvar e = data && data.length ? data[0] : {};\nfunction pick(keys) {\n  for (var i = 0; i < keys.length; i++) {\n    var v = e[keys[i]];\n    if (v !== undefined && v !== null && v !== '') return v;\n  }\n  return null;\n}\nfunction esc(v) {\n  return String(v == null ? '\\u2014' : v).replace(/[&<>\"]/g, function (c) {\n    return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c];\n  });\n}\nfunction coord(v, digits) {\n  if (v == null || v === '') return 'Unavailable';\n  var n = Number(v);\n  return Number.isFinite(n) ? n.toFixed(digits) : 'Unavailable';\n}\nfunction when(v) {\n  var n = Number(v);\n  return Number.isFinite(n) && n > 0 ? new Date(n).toLocaleString() : 'Unavailable';\n}\nvar node = pick(['node_id', 'entityName']);\nvar name = pick(['water_point', 'entityName']);\nvar districts = {\n  'FSN-01': 'Kathmandu',\n  'FSN-02': 'Kathmandu',\n  'FSN-03': 'Lalitpur'\n};\nvar district = districts[String(node)] || pick(['district']);\nvar lat = coord(pick(['latitude']), 5);\nvar lon = coord(pick(['longitude']), 5);\nvar coords = lat !== 'Unavailable' && lon !== 'Unavailable' ? lat + ', ' + lon : 'Unavailable';\nvar av = pick(['active']);\nvar connectivity = av === true || av === 'true' ? 'Active'\n  : (av === false || av === 'false' ? 'Inactive' : 'Unavailable');\nvar last = when(pick(['lastActivityTime']));\nvar telemetry = when(pick(['ts']));\nif (!node && !name && coords === 'Unavailable' && last === 'Unavailable' && telemetry === 'Unavailable') {\n  return \"<div class='meta-card'><div class='meta-empty'>Click a map marker to inspect a water point.</div></div>\";\n}\nreturn '<div class=\"meta-card\">'\n  + '<div class=\"meta-head\"><span class=\"meta-id\">' + esc(node || '\\u2014') + '</span>'\n  + '<span class=\"meta-name\">' + esc(name || 'Water point') + '</span></div>'\n  + '<div class=\"meta-row\"><span>District</span><b>'\n  + (district ? esc(district) : 'Unavailable') + '</b></div>'\n  + '<div class=\"meta-row\"><span>Connectivity</span><b>' + connectivity + '</b></div>'\n  + '<div class=\"meta-row\"><span>Coordinates</span><b>' + coords + '</b></div>'\n  + '<div class=\"meta-row\"><span>Device activity</span><b>' + last + '</b></div>'\n  + '<div class=\"meta-row\"><span>Telemetry time</span><b>' + telemetry + '</b></div>'\n  + '</div>';\n",
+            "applyDefaultMarkdownStyle": false,
+            "markdownCss": "\n.meta-card{width:100%;height:100%;box-sizing:border-box;background:#ffffff;border:1px solid #e2e8f0;\n  border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;justify-content:center;\n  color:#1e293b;font-family:Roboto,Arial,sans-serif}\n.meta-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;\n  border-bottom:1px solid #e2e8f0;padding-bottom:7px;margin-bottom:6px}\n.meta-id{font-size:12px;font-weight:800;color:#2563eb;letter-spacing:.7px}\n.meta-name{font-size:14px;font-weight:700;color:#1e293b}\n.meta-row{display:flex;justify-content:space-between;gap:12px;font-size:12px;line-height:1.7}\n.meta-row span{color:#64748b}\n.meta-row b{color:#1e293b;font-weight:600;text-align:right}\n.meta-empty{color:#64748b;font-size:13px;text-align:center}\n"
+          },
+          "title": "Node Metadata & Location",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "809504e0-7de1-5bd9-9322-b11f413c0428",
+              "dataKeys": [
+                {
+                  "name": "node_id",
+                  "type": "timeseries",
+                  "label": "node_id",
+                  "color": "#607d8b",
+                  "settings": {}
+                },
+                {
+                  "name": "water_point",
+                  "type": "timeseries",
+                  "label": "water_point",
+                  "color": "#607d8b",
+                  "settings": {}
+                },
+                {
+                  "name": "latitude",
+                  "type": "timeseries",
+                  "label": "latitude",
+                  "color": "#607d8b",
+                  "settings": {}
+                },
+                {
+                  "name": "longitude",
+                  "type": "timeseries",
+                  "label": "longitude",
+                  "color": "#607d8b",
+                  "settings": {}
+                },
+                {
+                  "name": "active",
+                  "type": "attribute",
+                  "label": "active",
+                  "color": "#607d8b",
+                  "settings": {}
+                },
+                {
+                  "name": "lastActivityTime",
+                  "type": "attribute",
+                  "label": "lastActivityTime",
+                  "color": "#607d8b",
+                  "settings": {}
+                },
+                {
+                  "name": "ts",
+                  "type": "timeseries",
+                  "label": "ts",
+                  "color": "#607d8b",
+                  "settings": {}
+                }
+              ]
+            }
+          ],
+          "units": "",
+          "decimals": 0,
+          "titleColor": "#1e293b"
+        },
+        "mobileOrder": 1000,
+        "mobileHeight": 4
+      },
+      "ae67ac18-a79d-5b51-85e4-ee382e54c4a0": {
+        "id": "ae67ac18-a79d-5b51-85e4-ee382e54c4a0",
+        "type": "latest",
+        "typeFullFqn": "system.cards.markdown_card",
+        "sizeX": 9,
+        "sizeY": 5,
+        "row": 0,
+        "col": 0,
+        "config": {
+          "showTitle": true,
+          "backgroundColor": "#ffffff",
+          "color": "#1e293b",
+          "titleColor": "#1e293b",
+          "padding": "8px",
+          "title": "Current operational state",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "14px",
+            "fontWeight": 600
+          },
+          "widgetStyle": {
+            "borderRadius": "14px"
+          },
+          "widgetCss": "\n.tb-widget-title, .tb-widget-title * { color: #1e293b !important; font-weight: 600 !important; }\n.tb-widget-title-panel { border-bottom: 1px solid #e2e8f0 !important; }\n.tb-widget-content { border: 1px solid #e2e8f0 !important; border-radius: 0 0 12px 12px !important; }\n.mat-table, .mat-paginator { background: #ffffff !important; }\n.mat-header-row, .mat-header-cell {\n  background: #f8fafc !important;\n  color: #475569 !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 12px !important;\n  font-weight: 600 !important;\n}\n.mat-row, .mat-cell, .mat-footer-cell {\n  background: #ffffff !important;\n  color: #1e293b !important;\n  border-bottom-color: #e2e8f0 !important;\n  font-size: 13px !important;\n}\n.mat-row:hover { background: #f8fafc !important; }\n.mat-paginator, .mat-paginator-container, .mat-paginator-page-size,\n.mat-paginator-range-label, .mat-paginator-navigation-previous,\n.mat-paginator-navigation-next { color: #475569 !important; }\n",
+          "actions": {},
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "809504e0-7de1-5bd9-9322-b11f413c0428",
+              "dataKeys": [
+                {
+                  "name": "operational_state",
+                  "type": "timeseries",
+                  "label": "operational_state",
+                  "color": "#2e7d32",
+                  "settings": {}
+                }
+              ]
+            }
+          ],
+          "settings": {
+            "useMarkdownTextFunction": true,
+            "markdownTextPattern": "<div class='node-state state-empty'><div class='node-state-kicker'>CURRENT OPERATIONAL STATE</div><div class='node-state-value'>UNAVAILABLE</div></div>",
+            "markdownTextFunction": "\nvar e = data && data.length ? data[0] : {};\nvar raw = e.operational_state || e.State || '';\nvar state = String(raw).toLowerCase();\nvar palette = {\n  normal: '#2e7d32',\n  watch: '#fbc02d',\n  investigate: '#f57c00',\n  intervention: '#d32f2f'\n};\nvar color = palette[state] || '#64748b';\nvar text = (state === 'watch' || state === 'investigate') ? '#1e293b' : '#ffffff';\nvar label = raw ? String(raw).toUpperCase() : 'UNAVAILABLE';\nvar response = state === 'intervention'\n  ? '<div class=\"node-state-response\"><b>RESPONSE REQUIRED</b>'\n    + 'Stop supply &middot; Acknowledge Critical alarm &middot; '\n    + 'Resample &middot; Resume after safe readings</div>'\n  : '';\nreturn '<div class=\"node-state\" style=\"background:' + color + ';color:' + text + '\">'\n  + '<div class=\"node-state-kicker\">CURRENT OPERATIONAL STATE</div>'\n  + '<div class=\"node-state-value\">' + label + '</div>'\n  + response\n  + '</div>';\n",
+            "applyDefaultMarkdownStyle": false,
+            "markdownCss": "\n.node-state{width:100%;height:100%;box-sizing:border-box;border-radius:12px;padding:10px 12px;\n  display:flex;flex-direction:column;justify-content:center;text-align:center;\n  font-family:Roboto,Arial,sans-serif;box-shadow:0 6px 16px rgba(15,23,42,.12)}\n.node-state-kicker{font-size:9px;font-weight:700;letter-spacing:1.1px;opacity:.86}\n.node-state-value{font-size:clamp(20px,3vh,30px);font-weight:800;line-height:1.1;margin-top:3px;letter-spacing:-.5px}\n.state-empty{background:#64748b;color:#ffffff}\n.node-state-response{margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,.38);\n  font-size:9px;line-height:1.3;font-weight:600}\n.node-state-response b{display:block;font-weight:800;letter-spacing:.6px}\n"
+          }
+        }
+      }
+    },
+    "states": {
+      "default": {
+        "name": "Operations overview",
+        "root": true,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "3a9ba5a6-1db5-5a18-977c-be678f06098c": {
+                "row": 23,
+                "col": 0,
+                "sizeX": 24,
+                "sizeY": 7,
+                "mobileOrder": 80,
+                "mobileHeight": 4
+              },
+              "d4568d89-4bd1-56f4-9cc2-7f91e4af24a5": {
+                "row": 16,
+                "col": 12,
+                "sizeX": 12,
+                "sizeY": 7,
+                "mobileOrder": 71,
+                "mobileHeight": 4
+              },
+              "0192d5d3-4f9a-54ff-97c7-1990466eb7f0": {
+                "row": 16,
+                "col": 0,
+                "sizeX": 12,
+                "sizeY": 7,
+                "mobileOrder": 70,
+                "mobileHeight": 4
+              },
+              "b84552ed-db82-a95b-1af1-6489b8641e98": {
+                "row": 6,
+                "col": 0,
+                "sizeX": 12,
+                "sizeY": 8,
+                "mobileOrder": 40,
+                "mobileHeight": 8
+              },
+              "d490b168-9871-5d9f-a3a2-c1b17edadfa0": {
+                "row": 0,
+                "col": 0,
+                "sizeX": 6,
+                "sizeY": 3,
+                "mobileOrder": 0,
+                "mobileHeight": 3
+              },
+              "b32ef427-fb55-5316-af0b-23bcc32bc585": {
+                "row": 0,
+                "col": 6,
+                "sizeX": 6,
+                "sizeY": 3,
+                "mobileOrder": 1,
+                "mobileHeight": 3
+              },
+              "b92f891c-3192-5713-a9ad-12b34d02d2f4": {
+                "row": 3,
+                "col": 0,
+                "sizeX": 6,
+                "sizeY": 3,
+                "mobileOrder": 2,
+                "mobileHeight": 3
+              },
+              "12165aa1-4582-5913-a51b-c6f83596282f": {
+                "row": 3,
+                "col": 6,
+                "sizeX": 6,
+                "sizeY": 3,
+                "mobileOrder": 3,
+                "mobileHeight": 3
+              },
+              "f20b5576-6233-564c-8d0c-2326f3d57cd7": {
+                "row": 0,
+                "col": 12,
+                "sizeX": 12,
+                "sizeY": 2,
+                "mobileOrder": 20,
+                "mobileHeight": 2
+              },
+              "6d1c28c7-9d6b-50a0-a9fa-984608221709": {
+                "row": 2,
+                "col": 12,
+                "sizeX": 12,
+                "sizeY": 2,
+                "mobileOrder": 21,
+                "mobileHeight": 2
+              },
+              "02e07beb-f0d7-5359-8401-37bf179f1770": {
+                "row": 4,
+                "col": 12,
+                "sizeX": 12,
+                "sizeY": 2,
+                "mobileOrder": 22,
+                "mobileHeight": 2
+              },
+              "34c26972-c3fa-5966-9c6e-136477766807": {
+                "row": 6,
+                "col": 12,
+                "sizeX": 12,
+                "sizeY": 8,
+                "mobileOrder": 41,
+                "mobileHeight": 8
+              },
+              "38d2bcd4-b392-5007-8b61-bd9e280d9779": {
+                "row": 14,
+                "col": 0,
+                "sizeX": 24,
+                "sizeY": 2,
+                "mobileOrder": 60,
+                "mobileHeight": 2
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#f8fafc",
+              "color": "#1e293b",
+              "columns": 24,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": false,
+              "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70,
+              "margin": 8,
+              "outerMargin": true,
+              "layoutType": "default"
+            }
+          }
+        }
+      },
+      "node_detail": {
+        "name": "Node detail: ${entityName}",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "3d9d454f-77e7-5124-a932-dea99f10ff86": {
+                "sizeX": 5,
+                "sizeY": 5,
+                "row": 5,
+                "col": 0,
+                "mobileOrder": 0,
+                "mobileHeight": 4
+              },
+              "6e7486f3-5ce5-51a7-82ff-221464fcc47b": {
+                "sizeX": 5,
+                "sizeY": 5,
+                "row": 5,
+                "col": 5,
+                "mobileOrder": 4,
+                "mobileHeight": 4
+              },
+              "428d13b2-a2cf-5cc5-b157-9b3c75f5ebd1": {
+                "sizeX": 5,
+                "sizeY": 5,
+                "row": 5,
+                "col": 10,
+                "mobileOrder": 8,
+                "mobileHeight": 4
+              },
+              "5db1b96b-4c61-5ed1-a2d6-c02b599e554c": {
+                "sizeX": 4,
+                "sizeY": 5,
+                "row": 5,
+                "col": 20,
+                "mobileOrder": 12,
+                "mobileHeight": 4
+              },
+              "528aac5a-03c8-50b5-a9bf-2f10dccf6409": {
+                "sizeX": 5,
+                "sizeY": 5,
+                "row": 5,
+                "col": 15,
+                "mobileOrder": 16,
+                "mobileHeight": 4
+              },
+              "17955f27-5736-5b34-bb50-7531be0fb564": {
+                "sizeX": 12,
+                "sizeY": 9,
+                "row": 10,
+                "col": 0,
+                "mobileOrder": 400,
+                "mobileHeight": 6
+              },
+              "870e5076-7858-51ca-b16d-67975257dc81": {
+                "sizeX": 12,
+                "sizeY": 9,
+                "row": 10,
+                "col": 12,
+                "mobileOrder": 412,
+                "mobileHeight": 6
+              },
+              "ae67ac18-a79d-5b51-85e4-ee382e54c4a0": {
+                "sizeX": 9,
+                "sizeY": 5,
+                "row": 0,
+                "col": 0,
+                "mobileOrder": 1000,
+                "mobileHeight": 3
+              },
+              "5f2f753e-40e4-5e26-b73e-2f779ad151db": {
+                "sizeX": 24,
+                "sizeY": 10,
+                "row": 19,
+                "col": 0,
+                "mobileOrder": 1012,
+                "mobileHeight": 6
+              },
+              "fcecdc79-2560-586a-abdf-fdce9490c0ad": {
+                "sizeX": 15,
+                "sizeY": 5,
+                "row": 0,
+                "col": 9,
+                "mobileOrder": 1000,
+                "mobileHeight": 4
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#f8fafc",
+              "color": "#1e293b",
+              "columns": 24,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": false,
+              "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70,
+              "margin": 8,
+              "outerMargin": true,
+              "layoutType": "default"
+            }
+          }
+        }
+      }
+    },
+    "entityAliases": {
+      "4362b944-40bc-5596-be72-bc3fa7b4a344": {
+        "id": "4362b944-40bc-5596-be72-bc3fa7b4a344",
+        "alias": "FloodSafe Nodes",
+        "filter": {
+          "type": "deviceType",
+          "resolveMultiple": true,
+          "deviceNameFilter": "",
+          "deviceTypes": [
+            "FloodSafe Node"
+          ]
+        }
+      },
+      "809504e0-7de1-5bd9-9322-b11f413c0428": {
+        "id": "809504e0-7de1-5bd9-9322-b11f413c0428",
+        "alias": "Selected FloodSafe Node",
+        "filter": {
+          "type": "stateEntity",
+          "resolveMultiple": false,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null
+        }
+      }
+    },
+    "filters": {
+      "16d256f7-6c11-520d-ad98-3f0c5cb6cc86": {
+        "id": "16d256f7-6c11-520d-ad98-3f0c5cb6cc86",
+        "filter": "State=Normal",
+        "keyFilters": [
+          {
+            "key": {
+              "type": "TIME_SERIES",
+              "key": "operational_state"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "EQUAL",
+                  "value": {
+                    "defaultValue": "Normal",
+                    "dynamicValue": null
+                  },
+                  "ignoreCase": false,
+                  "type": "STRING"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 0
+                }
+              }
+            ]
+          }
+        ],
+        "editable": false
+      },
+      "643babf7-819b-5238-bb08-8fda8fcb76bf": {
+        "id": "643babf7-819b-5238-bb08-8fda8fcb76bf",
+        "filter": "State=Watch",
+        "keyFilters": [
+          {
+            "key": {
+              "type": "TIME_SERIES",
+              "key": "operational_state"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "EQUAL",
+                  "value": {
+                    "defaultValue": "Watch",
+                    "dynamicValue": null
+                  },
+                  "ignoreCase": false,
+                  "type": "STRING"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 0
+                }
+              }
+            ]
+          }
+        ],
+        "editable": false
+      },
+      "98028f50-04a2-5075-a4c2-121f4e2d3959": {
+        "id": "98028f50-04a2-5075-a4c2-121f4e2d3959",
+        "filter": "State=Investigate",
+        "keyFilters": [
+          {
+            "key": {
+              "type": "TIME_SERIES",
+              "key": "operational_state"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "EQUAL",
+                  "value": {
+                    "defaultValue": "Investigate",
+                    "dynamicValue": null
+                  },
+                  "ignoreCase": false,
+                  "type": "STRING"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 0
+                }
+              }
+            ]
+          }
+        ],
+        "editable": false
+      },
+      "a0e43e82-2227-5caf-b140-5865c011adba": {
+        "id": "a0e43e82-2227-5caf-b140-5865c011adba",
+        "filter": "State=Intervention",
+        "keyFilters": [
+          {
+            "key": {
+              "type": "TIME_SERIES",
+              "key": "operational_state"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "EQUAL",
+                  "value": {
+                    "defaultValue": "Intervention",
+                    "dynamicValue": null
+                  },
+                  "ignoreCase": false,
+                  "type": "STRING"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 0
+                }
+              }
+            ]
+          }
+        ],
+        "editable": false
+      },
+      "3b95d544-636f-528d-960a-d6b3b0b52d7c": {
+        "id": "3b95d544-636f-528d-960a-d6b3b0b52d7c",
+        "filter": "NeedsAttention",
+        "keyFilters": [
+          {
+            "key": {
+              "type": "TIME_SERIES",
+              "key": "operational_state"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "EQUAL",
+                  "value": {
+                    "defaultValue": "Intervention",
+                    "dynamicValue": null
+                  },
+                  "ignoreCase": false,
+                  "type": "STRING"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 0
+                }
+              }
+            ]
+          },
+          {
+            "key": {
+              "type": "TIME_SERIES",
+              "key": "operational_state"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "EQUAL",
+                  "value": {
+                    "defaultValue": "Investigate",
+                    "dynamicValue": null
+                  },
+                  "ignoreCase": false,
+                  "type": "STRING"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 1
+                }
+              }
+            ]
+          }
+        ],
+        "keyFiltersOperation": "OR",
+        "editable": false
+      }
+    },
+    "timewindow": {
+      "selectedTab": 0,
+      "realtime": {
+        "realtimeType": 0,
+        "timewindowMs": 86400000
+      },
+      "aggregation": {
+        "type": "NONE",
+        "limit": 50000
+      }
+    },
+    "settings": {
+      "stateControllerId": "entity",
+      "showTitle": true,
+      "showDashboardsSelect": true,
+      "showEntitiesSelect": true,
+      "showDashboardTimewindow": true,
+      "showDashboardExport": true,
+      "toolbarAlwaysOpen": true,
+      "title": "FloodSafe Nepal — Municipal Operations"
+    }
+  },
+  "resources": []
+}

@@ -1,0 +1,49 @@
+{
+  "source": "Assessment Task 3, section C.3 (Required Alarm Rules)",
+  "device_profile": "FloodSafe Node",
+  "note": "Create these in Device Profile -> Alarm Rules (preferred). The durations marked UNDEFINED are not specified in the assignment documents; agree a value with your group before configuring.",
+  "alarms": [
+    {
+      "name": "High Turbidity",
+      "severity": "Warning",
+      "create": "turbidity_ntu > 50",
+      "clear": "turbidity_ntu < 40",
+      "hysteresis": "Create at 50 NTU, clear only below 40 NTU."
+    },
+    {
+      "name": "Gross Contamination",
+      "severity": "Critical",
+      "create": "turbidity_ntu > 200",
+      "clear": "turbidity_ntu < 150",
+      "hysteresis": "Create at 200 NTU, clear only below 150 NTU."
+    },
+    {
+      "name": "pH Out of Range",
+      "severity": "Critical",
+      "create": "ph < 6.5 OR ph > 8.5",
+      "clear": "6.7 <= ph <= 8.3",
+      "hysteresis": "Clear band is narrower than create band."
+    },
+    {
+      "name": "High TDS",
+      "severity": "Critical",
+      "create": "tds_ppm > 500",
+      "clear": "tds_ppm < 450",
+      "hysteresis": "Create at 500 ppm, clear only below 450 ppm."
+    },
+    {
+      "name": "Supply Interruption",
+      "severity": "Major",
+      "create": "flow_lpm == 0 sustained",
+      "clear": "flow_lpm > 0",
+      "hysteresis": "UNDEFINED: assignment says 'sustained' but gives no duration."
+    },
+    {
+      "name": "Node Inactive",
+      "severity": "Critical",
+      "create": "Device inactivity timeout exceeded",
+      "clear": "Telemetry resumes",
+      "hysteresis": "UNDEFINED: assignment requires an inactivity timeout but gives no value."
+    }
+  ]
+}

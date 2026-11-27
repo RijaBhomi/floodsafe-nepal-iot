@@ -1,6 +1,6 @@
 # FloodSafe Nepal — IoT Assignment 3
 
-**Current stage: project skeleton, Python virtual sensor simulator, SQLite local buffer, MQTT/ThingsBoard synchronization, and per-node routing to three ThingsBoard devices.**
+**Current stage: project skeleton, Python virtual sensor simulator, SQLite local buffer, MQTT/ThingsBoard synchronization, per-node routing to three ThingsBoard devices, and verified ThingsBoard dashboard/rule-engine configuration (Stage 4).**
 
 FloodSafe Nepal is a post-flood water-quality monitoring and decision-support
 prototype for the Internet of Things (ITS67404) Assignment 3. Python simulates
@@ -26,14 +26,28 @@ points in Kathmandu Valley.
   synchronization manager (`src/sync_manager.py`).
 - Per-node routing: each virtual node uses its own device token and connects to
   its own ThingsBoard device.
-- Automated tests for the database and for MQTT/sync using mocks in `tests/`.
+- Verified ThingsBoard configuration under `thingsboard/`: sanitised real
+  dashboard and operational-state rule-chain exports, alarm-rule reference,
+  build sheet and verification checklist.
+- Automated tests for the database, MQTT/sync using mocks, and the committed
+  cloud configuration files in `tests/`.
 
 ## What is NOT included yet
 
-ThingsBoard dashboards, alarm rules, device provisioning in code, and
-performance measurement. You still create the device and copy its access token
-manually in the ThingsBoard web UI. The sync command is a single controlled
-run — there is no endless retry loop in this stage.
+The committed dashboard and rule-chain JSON are **sanitised real exports from a
+verified ThingsBoard 4.4.1 tenant**, not invented templates. They were imported,
+linked and tested with telemetry in that tenant. If you use a different account,
+you must still create/provision the devices, set tokens, import/link the exports
+and verify them there before claiming they are live. Device inactivity timeout
+is still unset because the assignment gives no value. Performance measurement
+(latency, delivery ratio, alarm delay, flush throughput, recovery time and data
+loss) is not yet implemented. The sync command is a single controlled run —
+there is no endless retry loop.
+
+Some assignment values are genuinely unspecified: numeric thresholds and
+persistence counts for the four operational states, the "sustained" duration
+for `flow_lpm == 0`, and the device inactivity timeout. These are flagged as
+clarification items rather than invented. See `thingsboard/README.md`.
 
 ## Project structure
 
@@ -56,6 +70,15 @@ run — there is no endless retry loop in this stage.
 | `output/.gitkeep` | Placeholder so the empty `output/` directory is tracked by Git. |
 | `tests/test_database.py` | Standard-library `unittest` tests using a temporary database. |
 | `tests/test_mqtt_sync.py` | MQTT/sync tests using fakes and mocks; no real broker or token needed. |
+| `tests/test_thingsboard_config.py` | Offline checks for the committed dashboard/rule exports, exact alarm thresholds, and credential-free files. |
+| `thingsboard/README.md` | Stage 4 setup guide: devices, profile, rule engine, dashboard import and verification steps. |
+| `thingsboard/dashboard_floodsafe.json` | Light operations dashboard (23 stock widgets, two states), rebased from the user-supplied earlier ThingsBoard 4.4.1 export and polished locally. Not live until imported. |
+| `thingsboard/rule_chain_operational_state.json` | Sanitised real export of the verified transform + Save Timeseries rule chain. |
+| `thingsboard/dashboard_build_sheet.md` | Manual widget/alias/colour layout and fallback if importing into another tenant fails. |
+| `thingsboard/alarm_rules.md` | Exact Task 3 alarm table and configuration steps. |
+| `thingsboard/operational_states.md` | Four state definitions, proposed mapping, group-approval notes and state tests. |
+| `thingsboard/verification_checklist.md` | Verification status and screenshot checklist for the assignment report. |
+| `thingsboard/screenshots/` | Captured dashboard evidence: fleet overview and FSN-01 node detail. |
 
 ## Telemetry schema (summary)
 
@@ -134,6 +157,11 @@ The flood scenario uses one shared contamination severity for all three nodes.
 Severity rises quickly, holds at a peak, then washes out slowly. Turbidity,
 pH, TDS and flow all respond to that same severity, so the readings describe
 one related event instead of independent random numbers.
+
+To force one exact operational state and its ThingsBoard alarms for a screenshot,
+use the deterministic publisher described in
+[`thingsboard/operational_states.md`](thingsboard/operational_states.md). The
+simulator generates readings; the linked rule chain derives `operational_state`.
 
 ### Saving output to a file
 
@@ -333,8 +361,10 @@ of being sent to the broker.
 - Publishes JSON to exactly `v1/devices/me/telemetry`.
 - Uses **QoS 1** and waits for Paho's `wait_for_publish()` confirmation
   (the broker's PUBACK) before anything is marked sent.
-- Sends only the 11 telemetry fields. `id`, `sent` and `sent_at` stay in
-  SQLite and never appear in the MQTT payload.
+- Sends the 11 telemetry fields in ThingsBoard's timestamp envelope: outer `ts`
+  is the client acquisition time and `values` contains the same 11 fields,
+  including `ts`. `id`, `sent` and `sent_at` stay in SQLite and never appear in
+  the MQTT payload.
 - If a node's token is missing, its rows stay pending and the log names the
   missing environment variable (never a token value). Other nodes still send.
 - Logs only host, node ID, topic, timestamp and sync counts — never a token.
@@ -407,10 +437,12 @@ Then:
 During an outage, readings keep accumulating with `sent = 0`. Nothing is
 deleted. When connectivity returns, `--sync` reads pending rows oldest-first,
 publishes them through the matching node's MQTT client, and marks each one sent
-only after the broker confirms it. If one publish fails, the sync stops so the
-broker is not hammered; that row and all later rows remain pending for the next
-run. If a node has no token configured, only that node's rows are skipped and
-stay pending — the other nodes still send.
+only after the broker confirms it. Because the payload uses the timestamp
+envelope, replayed rows appear in ThingsBoard at their original client `ts`,
+so the time-series chart backfills the gap correctly. If one publish fails, the
+sync stops so the broker is not hammered; that row and all later rows remain
+pending for the next run. If a node has no token configured, only that node's
+rows are skipped and stay pending — the other nodes still send.
 
 Check the counts with:
 
@@ -432,9 +464,10 @@ python -c "from src.database import initialize_database,count_readings,count_pen
 
 ### Run the tests
 
-The database tests use a temporary SQLite file and the MQTT tests use mocks, so
-`data/floodsafe.db` and any real ThingsBoard connection are never used. Run
-all 37 tests from the project root:
+The database tests use a temporary SQLite file, the MQTT tests use mocks, and
+the ThingsBoard configuration tests are offline, so `data/floodsafe.db` and any
+real ThingsBoard connection are never used. Run all tests from the project
+root:
 
 Windows (PowerShell):
 
@@ -452,7 +485,7 @@ python3 -m unittest discover -s tests -v
 
 | Option | Required | Meaning |
 | --- | --- | --- |
-| `--scenario {normal,flood}` | yes | Which sensor model to run. Invalid names are rejected with a clear error. |
+| `--scenario {normal,flood,response}` | yes | Which sensor model to run. `response` emits the deterministic Intervention → containment → verification → recovery sequence. Invalid names are rejected with a clear error. |
 | `--count N` | yes | Total number of readings; must be a whole number of at least 1. |
 | `--output PATH` | no | Write the same JSON lines to a file (for example `output/flood.jsonl`). |
 | `--save-db` | no | Also store the readings in `data/floodsafe.db` with `sent = 0`. |
@@ -471,6 +504,48 @@ macOS / Linux:
 ```bash
 python3 -m src.main --scenario flood --count 12 | python3 -c "import sys,json; [json.loads(line) for line in sys.stdin if line.strip()]; print('valid JSON lines')"
 ```
+
+## ThingsBoard dashboard, states and alarms (Stage 4)
+
+The Stage 4 files are under [`thingsboard/`](thingsboard/README.md). The
+rule-chain JSON is a sanitised real export from a verified ThingsBoard 4.4.1
+tenant. The dashboard was rebased from the user-supplied earlier export and
+polished locally into a light municipal operations view with a 50/50 top split:
+four colour-filled, non-clickable state-count cards on the left and three
+non-clickable alarm bars on the right. Needs attention keeps its exported filter,
+the node state badge is compact, metadata uses real fields plus a verified
+demo-coordinate district mapping (FSN-01/FSN-02 Kathmandu, FSN-03 Lalitpur), and
+both charts and alarm tables follow the selected device.
+The verified tenant had three devices on the `FloodSafe Node` profile, six Task
+3 alarm rules, the linked operational-state rule chain, a three-marker map with
+click-through to node detail, gauges/trends/state badge and alarms tables with
+duration. The deterministic publisher produced all four states and the exact
+alarm severities, then a final normal reading cleared them. Earlier normal and
+flood `--save-db --sync` runs left 192 stored rows and 0 pending rows; a later
+interrupted sync left 222 stored, 205 sent and 17 pending rows that can be
+retried with `--sync`. An earlier dashboard was imported as a new dashboard in
+the verified tenant, but the current local file must be imported and visually
+re-verified before it is treated as live. See `docs/demo_runbook.md` for the
+end-to-end demonstration commands. The built-in `response` scenario shows the
+Intervention → contain → verify → resume workflow, and the optional Gmail
+notification steps are in `thingsboard/email_notification_setup.md`.
+
+In a different ThingsBoard account you still need to:
+
+1. Create the `FloodSafe Node` device profile, assign `FSN-01`–`FSN-03` to it,
+   configure the six exact Task 3 alarm rules, and agree an inactivity timeout
+   with your group (the assignment gives no value).
+2. Import and link `thingsboard/rule_chain_operational_state.json`, then approve
+   or replace its **PROPOSED** state thresholds with your group's decision.
+3. Import `thingsboard/dashboard_floodsafe.json` and check all widgets. If the
+   import fails or a widget is blank, use `thingsboard/dashboard_build_sheet.md`.
+4. Use `thingsboard/verification_checklist.md` to record remaining evidence.
+   Captured screenshots are in `thingsboard/screenshots/`. Do not describe the
+   configuration as live in another tenant until you have verified it there.
+
+The simulator, SQLite buffer, MQTT implementation and 11-field telemetry schema
+were not changed. `thingsboard/publish_test_reading.py` publishes one controlled
+reading for deterministic alarm tests without touching SQLite.
 
 ## Notes for the team
 
